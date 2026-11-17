@@ -564,18 +564,6 @@ export default function DashboardPage() {
         if (savedInv && savedInv.items && savedInv.items.length >= 10000 && savedInv.items[0]?.uom) {
           setInventoryItems(savedInv.items);
           if (savedInv.summary) setInventorySummary(savedInv.summary);
-        } else {
-          // Auto-fetch latest 10,049 consolidated inventory items from /api/inventory
-          fetch('/api/inventory')
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success && Array.isArray(res.items)) {
-                setInventoryItems(res.items);
-                if (res.summary) setInventorySummary(res.summary);
-                saveStoredInventory(res.items, res.summary || null);
-              }
-            })
-            .catch((err) => console.error('Auto-load inventory error:', err));
         }
         if (savedKapal && savedKapal.items && savedKapal.items.length > 0) {
           setKapalPosisiItems(savedKapal.items);
@@ -627,40 +615,37 @@ export default function DashboardPage() {
 
         const R2_PUBLIC_URL = 'https://pub-9a40b24be68549b19c6eaec0f2542c0b.r2.dev';
 
-        // 1. Coba fetch langsung dari CDN R2 Publik (Super cepat & bebas limit Worker)
-        fetch(`${R2_PUBLIC_URL}/dashboard-metadata/procurement-data.json`)
-          .then((r) => (r.ok ? r.json() : null))
-          .then((procData) => {
-            if (Array.isArray(procData) && procData.length > 0) {
-              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/armada-data.json`)
-                .then((r) => (r.ok ? r.json() : []))
-                .catch(() => [])
-                .then((armData) => {
-                  applySyncedData(procData, armData || []);
-                });
-            } else {
-              // Fallback ke API internal jika R2 CDN tidak merespon
-              fetch('/api/dashboard-sync')
-                .then((r) => r.json())
-                .then((res) => {
-                  if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
-                    applySyncedData(res.procurement, res.armada || []);
-                  }
-                })
-                .catch((e) => console.warn('Auto-fetch dashboard-sync fallback error:', e));
+        // 1. Fetch Cloud Data secara Paralel (Procurement & Armada) via HTTP/2 Multiplexing
+        const fetchCloudData = async () => {
+          try {
+            const [procRes, armRes] = await Promise.all([
+              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/procurement-data.json`, { cache: 'default' }),
+              fetch(`${R2_PUBLIC_URL}/dashboard-metadata/armada-data.json`, { cache: 'default' }),
+            ]);
+
+            if (procRes.ok && armRes.ok) {
+              const [procData, armData] = await Promise.all([procRes.json(), armRes.json()]);
+              if (Array.isArray(procData) && procData.length > 0) {
+                applySyncedData(procData, armData || []);
+                return;
+              }
             }
-          })
-          .catch(() => {
-            // Fallback ke API internal
-            fetch('/api/dashboard-sync')
-              .then((r) => r.json())
-              .then((res) => {
-                if (res.success && Array.isArray(res.procurement) && res.procurement.length > 0) {
-                  applySyncedData(res.procurement, res.armada || []);
-                }
-              })
-              .catch((e) => console.warn('Auto-fetch dashboard-sync fallback error:', e));
-          });
+          } catch {}
+
+          // Fallback ke API internal (didukung RAM cache server)
+          try {
+            const res = await fetch('/api/dashboard-sync');
+            const data = await res.json();
+            if (data.success && Array.isArray(data.procurement) && data.procurement.length > 0) {
+              applySyncedData(data.procurement, data.armada || []);
+            }
+          } catch (e) {
+            console.warn('Auto-fetch dashboard-sync fallback error:', e);
+          }
+        };
+
+        // Eksekusi fetch sinkronisasi cloud di background
+        fetchCloudData();
 
         if (activeWoItems.length === 0) {
           // Sync Work Order on initial load in background if not yet cached
@@ -713,18 +698,6 @@ export default function DashboardPage() {
         if (savedSisa && savedSisa.items && savedSisa.items.length > 0) {
           setSisaLayananItems(savedSisa.items);
           if (savedSisa.summary) setSisaLayananSummary(savedSisa.summary);
-        } else {
-          // Muat otomatis dari backend API saat pertama kali buka
-          fetch('/api/sisa-layanan')
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success && Array.isArray(res.items)) {
-                setSisaLayananItems(res.items);
-                if (res.summary) setSisaLayananSummary(res.summary);
-                saveStoredSisaLayanan(res.items, res.summary || null);
-              }
-            })
-            .catch((e) => console.warn('Auto-fetch Sisa Layanan initial load:', e));
         }
 
       } catch (e) {
@@ -737,6 +710,32 @@ export default function DashboardPage() {
       isMounted = false;
     };
   }, []);
+
+  // Lazy fetch Sisa Layanan (18MB) hanya saat tab yang membutuhkan data dibuka jika belum ada di state
+  useEffect(() => {
+    const tabsNeedingSisa: TabType[] = ['sisa-layanan', 'pratender', 'analytics', 'upload-fstb', 'upload-ttb', 'serah-terima-lapangan'];
+    if (tabsNeedingSisa.includes(activeTab) && sisaLayananItems.length === 0 && !isLoadingSisaLayanan) {
+      handleRefreshSisaLayanan();
+    }
+  }, [activeTab, sisaLayananItems.length, isLoadingSisaLayanan]);
+
+  // Lazy fetch Inventory (4.5MB) hanya saat tab inventory dibuka jika belum ada di state
+  useEffect(() => {
+    if (activeTab === 'inventory' && inventoryItems.length === 0 && !isLoadingInventory) {
+      setIsLoadingInventory(true);
+      fetch('/api/inventory')
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && Array.isArray(res.items)) {
+            setInventoryItems(res.items);
+            if (res.summary) setInventorySummary(res.summary);
+            saveStoredInventory(res.items, res.summary || null);
+          }
+        })
+        .catch((err) => console.error('Auto-load inventory error:', err))
+        .finally(() => setIsLoadingInventory(false));
+    }
+  }, [activeTab, inventoryItems.length, isLoadingInventory]);
 
   const [auditedFpb, setAuditedFpb] = useState<string | null>(null);
   const [auditedPo, setAuditedPo] = useState<string | null>(null);

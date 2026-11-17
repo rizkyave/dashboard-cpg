@@ -17,9 +17,11 @@ export const revalidate = 0;
 
 const R2_SISA_LAYANAN_KEY = 'dashboard-metadata/sisa-layanan.json';
 
-// In-memory server cache
+// In-memory server cache dengan TTL 5 menit (300.000 ms)
+const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedItems: SisaLayananItem[] | null = null;
 let cachedSummary: SisaLayananSummary | null = null;
+let lastCacheTime = 0;
 
 async function loadFromR2(): Promise<{ items: SisaLayananItem[]; summary: SisaLayananSummary } | null> {
   if (!isR2Configured()) return null;
@@ -106,24 +108,30 @@ export async function GET(req: NextRequest) {
   try {
     let data: { items: SisaLayananItem[]; summary: SisaLayananSummary } | null = null;
 
-    // 1. Coba baca dari Cloudflare R2 terlebih dahulu
-    data = await loadFromR2();
+    const isCacheFresh = Boolean(cachedItems && cachedSummary && (Date.now() - lastCacheTime < CACHE_TTL_MS));
+    if (isCacheFresh) {
+      data = { items: cachedItems!, summary: cachedSummary! };
+    } else {
+      // 1. Coba baca dari Cloudflare R2 terlebih dahulu
+      data = await loadFromR2();
 
-    // 2. Fallback ke disk jika belum ada di R2
-    if (!data || data.items.length === 0) {
-      data = loadInitialFromDisk();
-      // Seed data awal ke R2 jika berhasil membaca dari disk
-      if (data.items.length > 0 && isR2Configured()) {
-        saveToR2(data.items, data.summary).catch(() => {});
+      // 2. Fallback ke disk jika belum ada di R2
+      if (!data || data.items.length === 0) {
+        data = loadInitialFromDisk();
+        // Seed data awal ke R2 jika berhasil membaca dari disk
+        if (data.items.length > 0 && isR2Configured()) {
+          saveToR2(data.items, data.summary).catch(() => {});
+        }
       }
-    }
 
-    if (data.items && data.items.length > 0) {
-      data.items = data.items.map(normalizeItemDates);
-    }
+      if (data.items && data.items.length > 0) {
+        data.items = data.items.map(normalizeItemDates);
+      }
 
-    cachedItems = data.items;
-    cachedSummary = data.summary;
+      cachedItems = data.items;
+      cachedSummary = data.summary;
+      lastCacheTime = Date.now();
+    }
 
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase()?.trim();
@@ -159,14 +167,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      fromR2: isR2Configured(),
-      summary: data.summary,
-      totalCount: data.items.length,
-      totalFiltered: filtered.length,
-      items: filtered,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        fromR2: isR2Configured(),
+        cached: isCacheFresh,
+        summary: data.summary,
+        totalCount: data.items.length,
+        totalFiltered: filtered.length,
+        items: filtered,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Error GET /api/sisa-layanan:', error);
     return NextResponse.json(
@@ -188,6 +204,7 @@ export async function POST(req: NextRequest) {
         const summary = body.summary || calculateSisaLayananSummary(items);
         cachedItems = items;
         cachedSummary = summary;
+        lastCacheTime = Date.now();
         await saveToR2(items, summary);
         return NextResponse.json({
           success: true,
@@ -224,6 +241,7 @@ export async function POST(req: NextRequest) {
 
     cachedItems = result.items;
     cachedSummary = result.summary;
+    lastCacheTime = Date.now();
 
     // Simpan ke Cloudflare R2 agar tersimpan permanen & tersinkron di semua device
     await saveToR2(result.items, result.summary);

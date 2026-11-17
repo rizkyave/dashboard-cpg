@@ -48,6 +48,16 @@ const R2_METADATA_FSTB_KEY = 'fstb-metadata/history.json';
 const R2_METADATA_TTB_KEY = 'ttb-metadata/history.json';
 const R2_USERS_METADATA_KEY = 'users-metadata/users.json';
 
+// In-Memory RAM Cache Server untuk Validasi Dokumen (TTL 30 detik, auto-invalidated on mutation)
+const VALIDATION_CACHE_TTL_MS = 30 * 1000;
+let cachedValidations: DocumentValidationRecord[] | null = null;
+let lastValidationCacheTime = 0;
+
+function invalidateValidationCache() {
+  cachedValidations = null;
+  lastValidationCacheTime = 0;
+}
+
 interface UserSigLookup {
   signatureDataUrl: string;
   nik?: string;
@@ -157,6 +167,8 @@ async function getStoredValidations(): Promise<DocumentValidationRecord[]> {
 
 // Simpan data validasi ke Cloudflare R2 dan disk lokal
 async function saveValidations(records: DocumentValidationRecord[]) {
+  cachedValidations = records;
+  lastValidationCacheTime = Date.now();
   const jsonStr = JSON.stringify(records, null, 2);
 
   if (isR2Configured()) {
@@ -438,34 +450,47 @@ export async function GET(req: NextRequest) {
     const filterStatus = searchParams.get('status'); // OverallValidationStatus | null
     const query = (searchParams.get('q') || '').trim().toUpperCase();
 
-    let validationRecords = await getStoredValidations();
+    let validationRecords: DocumentValidationRecord[] = [];
+    const isCacheFresh = Boolean(
+      cachedValidations &&
+      cachedValidations.length > 0 &&
+      Date.now() - lastValidationCacheTime < VALIDATION_CACHE_TTL_MS
+    );
 
-    const fstbItems = await getFstbHistory();
-    const ttbItems = await getTtbHistory();
-    const serahTerimaItems = await getSerahTerimaHistory();
-    const userSigMap = await getUserSignatureMap();
+    if (isCacheFresh) {
+      validationRecords = [...cachedValidations!];
+    } else {
+      const [rawValidations, fstbItems, ttbItems, serahTerimaItems, userSigMap] = await Promise.all([
+        getStoredValidations(),
+        getFstbHistory(),
+        getTtbHistory(),
+        getSerahTerimaHistory(),
+        getUserSignatureMap(),
+      ]);
 
-    let hasNewDrafts = false;
+      validationRecords = rawValidations;
 
-    // Pastikan tabel validasi HANYA memuat berkas yang riil telah di-upload di sistem
-    const validFstbKeys = new Set(fstbItems.map((f) => (f.cleanNoFstb || f.noFstb).toUpperCase().trim()));
-    const validFstbIds = new Set(fstbItems.map((f) => f.id));
-    const validTtbKeys = new Set(ttbItems.map((t) => (t.cleanNoTtb || t.noTtb).toUpperCase().trim()));
-    const validTtbIds = new Set(ttbItems.map((t) => t.id));
+      let hasNewDrafts = false;
 
-    const initialLen = validationRecords.length;
-    validationRecords = validationRecords.filter((rec) => {
-      const docCode = (rec.cleanDocNumber || rec.docNumber || '').toUpperCase().trim();
-      if (rec.docType === 'FSTB') {
-        return validFstbIds.has(rec.docId) || validFstbKeys.has(docCode);
-      } else {
-        return validTtbIds.has(rec.docId) || validTtbKeys.has(docCode);
+      // Pastikan tabel validasi HANYA memuat berkas yang riil telah di-upload di sistem
+      const validFstbKeys = new Set(fstbItems.map((f) => (f.cleanNoFstb || f.noFstb).toUpperCase().trim()));
+      const validFstbIds = new Set(fstbItems.map((f) => f.id));
+      const validTtbKeys = new Set(ttbItems.map((t) => (t.cleanNoTtb || t.noTtb).toUpperCase().trim()));
+      const validTtbIds = new Set(ttbItems.map((t) => t.id));
+
+      const initialLen = validationRecords.length;
+      validationRecords = validationRecords.filter((rec) => {
+        const docCode = (rec.cleanDocNumber || rec.docNumber || '').toUpperCase().trim();
+        if (rec.docType === 'FSTB') {
+          return validFstbIds.has(rec.docId) || validFstbKeys.has(docCode);
+        } else {
+          return validTtbIds.has(rec.docId) || validTtbKeys.has(docCode);
+        }
+      });
+
+      if (validationRecords.length !== initialLen) {
+        hasNewDrafts = true;
       }
-    });
-
-    if (validationRecords.length !== initialLen) {
-      hasNewDrafts = true;
-    }
 
     const existingMap = new Map<string, DocumentValidationRecord>();
     for (const rec of validationRecords) {
@@ -916,8 +941,12 @@ export async function GET(req: NextRequest) {
       rec.isReadyForDispatch = comp.isReady;
     }
 
-    if (hasNewDrafts) {
-      await saveValidations(validationRecords);
+      if (hasNewDrafts) {
+        await saveValidations(validationRecords);
+      } else {
+        cachedValidations = validationRecords;
+        lastValidationCacheTime = Date.now();
+      }
     }
 
     // Urutkan dari yang terbaru
@@ -992,7 +1021,7 @@ export async function GET(req: NextRequest) {
       },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Cache-Control': 'public, max-age=15, s-maxage=30, stale-while-revalidate=60',
         },
       }
     );
@@ -2299,7 +2328,7 @@ export async function POST(req: NextRequest) {
       },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Cache-Control': 'public, max-age=15, s-maxage=30, stale-while-revalidate=60',
         },
       }
     );

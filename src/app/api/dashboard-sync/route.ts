@@ -21,6 +21,13 @@ const LOCAL_PROCUREMENT_PATH = path.join(process.cwd(), 'public', 'uploads', 'da
 const LOCAL_ARMADA_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'armada-data.json');
 const LOCAL_META_PATH = path.join(process.cwd(), 'public', 'uploads', 'dashboard-metadata', 'dashboard-meta.json');
 
+// In-Memory RAM Cache Server dengan TTL 5 Menit (300.000 ms)
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let cachedProcurement: ProcurementItem[] | null = null;
+let cachedArmada: ArmadaItem[] | null = null;
+let cachedMeta: DashboardMeta | null = null;
+let lastDashboardSyncCacheTime = 0;
+
 interface DashboardMeta {
   lastUpdated: string;
   totalProcurement: number;
@@ -169,6 +176,34 @@ async function saveDashboardDataToR2(
  */
 export async function GET() {
   try {
+    const isCacheFresh = Boolean(
+      cachedProcurement &&
+      cachedArmada &&
+      Date.now() - lastDashboardSyncCacheTime < CACHE_TTL_MS
+    );
+
+    if (isCacheFresh) {
+      return NextResponse.json(
+        {
+          success: true,
+          fromR2: isR2Configured(),
+          cached: true,
+          procurement: cachedProcurement!,
+          armada: cachedArmada!,
+          meta: cachedMeta || {
+            lastUpdated: new Date().toISOString(),
+            totalProcurement: cachedProcurement!.length,
+            totalArmada: cachedArmada!.length,
+          },
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+          },
+        }
+      );
+    }
+
     let procurement = await getStoredProcurementFromR2();
     let armada = await getStoredArmadaFromR2();
 
@@ -191,17 +226,32 @@ export async function GET() {
       } catch {}
     }
 
-    return NextResponse.json({
-      success: true,
-      fromR2: isR2Configured(),
-      procurement,
-      armada,
-      meta: meta || {
-        lastUpdated: new Date().toISOString(),
-        totalProcurement: procurement.length,
-        totalArmada: armada.length,
+    const effectiveMeta = meta || {
+      lastUpdated: new Date().toISOString(),
+      totalProcurement: procurement.length,
+      totalArmada: armada.length,
+    };
+
+    cachedProcurement = procurement;
+    cachedArmada = armada;
+    cachedMeta = effectiveMeta;
+    lastDashboardSyncCacheTime = Date.now();
+
+    return NextResponse.json(
+      {
+        success: true,
+        fromR2: isR2Configured(),
+        cached: false,
+        procurement,
+        armada,
+        meta: effectiveMeta,
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (err: any) {
     console.error('Error in GET /api/dashboard-sync:', err);
     return NextResponse.json(
@@ -230,6 +280,10 @@ export async function POST(req: NextRequest) {
         const resetProc: ProcurementItem[] = [];
         const resetArm: ArmadaItem[] = [];
         await saveDashboardDataToR2(resetProc, resetArm, body?.updatedBy || 'reset');
+        cachedProcurement = resetProc;
+        cachedArmada = resetArm;
+        cachedMeta = null;
+        lastDashboardSyncCacheTime = 0;
       }
       return NextResponse.json({
         success: true,
@@ -257,6 +311,17 @@ export async function POST(req: NextRequest) {
       newArmada,
       body?.updatedBy || 'user'
     );
+
+    // Perbarui in-memory cache server seketika
+    cachedProcurement = newProcurement;
+    cachedArmada = newArmada;
+    cachedMeta = {
+      lastUpdated: new Date().toISOString(),
+      totalProcurement: newProcurement.length,
+      totalArmada: newArmada.length,
+      updatedBy: body?.updatedBy || 'user',
+    };
+    lastDashboardSyncCacheTime = Date.now();
 
     return NextResponse.json({
       success: true,
