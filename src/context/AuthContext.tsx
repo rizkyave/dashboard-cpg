@@ -123,12 +123,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const session = getStoredSessionUser();
-    if (session) {
-      setUser(session);
+    try {
+      const session = getStoredSessionUser();
+      if (session) {
+        setUser(session);
+      }
+      loadUsersFromStorage();
+    } catch (err) {
+      console.warn('[Auth] Gagal inisialisasi sesi pengguna:', err);
+    } finally {
+      setIsLoading(false);
     }
-    loadUsersFromStorage();
-    setIsLoading(false);
+
+    // Safety fallback timer: pastikan isLoading mati dalam maksimal 1 detik
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
     // Sinkronkan akun & role terbaru dari cloud di background
     syncUsersWithCloud();
     syncPermissionsMatrixFromCloud();
@@ -202,6 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 12000); // Sinkronisasi otomatis setiap 12 detik
 
     return () => {
+      clearTimeout(safetyTimer);
       if (authChannel) authChannel.close();
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);

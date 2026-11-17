@@ -17,9 +17,10 @@ export function getStoredUsers(): UserAccount[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
+      const validParsed = parsed.filter((p: any) => p && typeof p === 'object' && p.username);
       // Pastikan semua akun default, NIK, jabatan, dan spesimen tanda tangan tersinkronisasi
       let needsSave = false;
-      const synced = parsed.map((p: any) => {
+      const synced = validParsed.map((p: any) => {
         const defaultMatch = DEFAULT_USERS.find(
           (def) => def.username.toLowerCase() === p.username?.toLowerCase()
         );

@@ -1100,13 +1100,48 @@ export default function DashboardPage() {
   };
 
   // Proteksi Akses & Tampilan Login
+  const [authTimeoutExceeded, setAuthTimeoutExceeded] = useState(false);
+  useEffect(() => {
+    if (isAuthLoading) {
+      const t = setTimeout(() => setAuthTimeoutExceeded(true), 2500);
+      return () => clearTimeout(t);
+    } else {
+      setAuthTimeoutExceeded(false);
+    }
+  }, [isAuthLoading]);
+
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center selection:bg-primary selection:text-primary-foreground">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 selection:bg-primary selection:text-primary-foreground">
         <div className="size-9 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         <span className="text-xs text-muted-foreground mt-3 font-mono tracking-wide">
           Memuat CPG Command Center Balikpapan...
         </span>
+        {authTimeoutExceeded && (
+          <div className="mt-4 flex flex-col items-center gap-2 animate-in fade-in duration-300">
+            <p className="text-xs text-amber-500 font-medium">Proses inisialisasi membutuhkan waktu lebih lama.</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition cursor-pointer"
+              >
+                Muat Ulang Halaman
+              </button>
+              <a
+                href="/login"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('CPG_AUTH_CURRENT_USER');
+                  } catch {}
+                }}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-border bg-card hover:bg-muted text-foreground transition"
+              >
+                Buka Halaman Login
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
