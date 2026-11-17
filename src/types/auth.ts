@@ -289,7 +289,10 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
   if (typeof window !== 'undefined') {
     try {
       const matrix = getStoredPermissionsMatrix();
-      const moduleItem = matrix.find((m) => m.tabId === tab);
+      let moduleItem = matrix.find((m) => m.tabId === tab);
+      if (!moduleItem && (tab === 'validasi-fstb' || tab === 'validasi-ttb')) {
+        moduleItem = matrix.find((m) => m.tabId === 'validasi-dokumen');
+      }
       if (moduleItem && role in moduleItem.permissions) {
         const rule = (moduleItem.permissions as any)[role] as RolePermissionRule | undefined;
         if (rule) {
@@ -326,6 +329,8 @@ export function getDefaultTabForRole(role: UserRole | undefined): TabType {
     'jadwal-pengantaran',
     'upload-ttb',
     'monitoring-internal',
+    'validasi-fstb',
+    'validasi-ttb',
     'validasi-dokumen',
     'serah-terima-lapangan',
     'galeri-ttb',

@@ -1263,15 +1263,25 @@ export async function POST(req: NextRequest) {
               }
 
               // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
-              const saveTargets = [
+              const saveTargets: string[] = [];
+              if (resolvedPath) saveTargets.push(resolvedPath);
+              saveTargets.push(
                 path.join(getPersistentStorageDir(), 'ttb-documents', filename),
                 path.join(getPersistentStorageDir(), filename),
                 path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
                 path.join(process.cwd(), 'public', 'ttb-documents', filename),
                 path.join(getTtbPhotosDir(), filename),
-                path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
-              ];
-              for (const tgt of saveTargets) {
+                path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename)
+              );
+
+              try {
+                const domainDir = path.resolve(process.cwd(), '../../../..');
+                saveTargets.push(path.join(domainDir, 'shared_uploads', 'ttb-documents', filename));
+                saveTargets.push(path.join(domainDir, 'shared_uploads', filename));
+              } catch {}
+
+              const uniqueSaveTargets = Array.from(new Set(saveTargets.filter(Boolean)));
+              for (const tgt of uniqueSaveTargets) {
                 try {
                   await fs.mkdir(path.dirname(tgt), { recursive: true });
                   await fs.writeFile(tgt, pdfBuffer);
@@ -1454,15 +1464,25 @@ export async function POST(req: NextRequest) {
               }
 
               // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
-              const saveTargets = [
+              const saveTargets: string[] = [];
+              if (resolvedPath) saveTargets.push(resolvedPath);
+              saveTargets.push(
                 path.join(getPersistentStorageDir(), 'fstb-documents', filename),
                 path.join(getPersistentStorageDir(), filename),
                 path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
                 path.join(process.cwd(), 'public', 'fstb-documents', filename),
                 path.join(getFstbPhotosDir(), filename),
-                path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
-              ];
-              for (const tgt of saveTargets) {
+                path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename)
+              );
+
+              try {
+                const domainDir = path.resolve(process.cwd(), '../../../..');
+                saveTargets.push(path.join(domainDir, 'shared_uploads', 'fstb-documents', filename));
+                saveTargets.push(path.join(domainDir, 'shared_uploads', filename));
+              } catch {}
+
+              const uniqueSaveTargets = Array.from(new Set(saveTargets.filter(Boolean)));
+              for (const tgt of uniqueSaveTargets) {
                 try {
                   await fs.mkdir(path.dirname(tgt), { recursive: true });
                   await fs.writeFile(tgt, pdfBuffer);
@@ -2044,20 +2064,32 @@ export async function POST(req: NextRequest) {
           }
 
           // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
-          const savePaths = [
+          const savePaths: string[] = [];
+          if (resolvedPath) savePaths.push(resolvedPath);
+          savePaths.push(
             path.join(getPersistentStorageDir(), 'fstb-documents', filename),
             path.join(getPersistentStorageDir(), filename),
             path.join(process.cwd(), 'public', 'uploads', 'fstb-documents', filename),
             path.join(process.cwd(), 'public', 'fstb-documents', filename),
             path.join(getFstbPhotosDir(), filename),
-            path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename),
-          ];
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_FSTB', filename)
+          );
 
-          for (const p of savePaths) {
+          // Simpan juga ke level domain shared_uploads jika berada di environment Hostinger
+          try {
+            const domainDir = path.resolve(process.cwd(), '../../../..');
+            savePaths.push(path.join(domainDir, 'shared_uploads', 'fstb-documents', filename));
+            savePaths.push(path.join(domainDir, 'shared_uploads', filename));
+          } catch {}
+
+          const uniqueSavePaths = Array.from(new Set(savePaths.filter(Boolean)));
+          for (const p of uniqueSavePaths) {
             try {
               await fs.mkdir(path.dirname(p), { recursive: true });
               await fs.writeFile(p, pdfBuffer);
-            } catch {}
+            } catch (wErr) {
+              console.warn(`Gagal menulis PDF FSTB ke ${p}:`, wErr);
+            }
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;
@@ -2264,20 +2296,32 @@ export async function POST(req: NextRequest) {
           }
 
           // Simpan salinan ke seluruh target direktori penyimpanan lokal Hostinger
-          const savePaths = [
+          const savePaths: string[] = [];
+          if (resolvedPath) savePaths.push(resolvedPath);
+          savePaths.push(
             path.join(getPersistentStorageDir(), 'ttb-documents', filename),
             path.join(getPersistentStorageDir(), filename),
             path.join(process.cwd(), 'public', 'uploads', 'ttb-documents', filename),
             path.join(process.cwd(), 'public', 'ttb-documents', filename),
             path.join(getTtbPhotosDir(), filename),
-            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename),
-          ];
+            path.join(process.cwd(), 'src', 'app', 'public', 'photos_TTB', filename)
+          );
 
-          for (const p of savePaths) {
+          // Simpan juga ke level domain shared_uploads jika berada di environment Hostinger
+          try {
+            const domainDir = path.resolve(process.cwd(), '../../../..');
+            savePaths.push(path.join(domainDir, 'shared_uploads', 'ttb-documents', filename));
+            savePaths.push(path.join(domainDir, 'shared_uploads', filename));
+          } catch {}
+
+          const uniqueSavePaths = Array.from(new Set(savePaths.filter(Boolean)));
+          for (const p of uniqueSavePaths) {
             try {
               await fs.mkdir(path.dirname(p), { recursive: true });
               await fs.writeFile(p, pdfBuffer);
-            } catch {}
+            } catch (wErr) {
+              console.warn(`Gagal menulis PDF TTB ke ${p}:`, wErr);
+            }
           }
 
           record.fileUrl = `/api/r2-file?key=${encodeURIComponent(r2Key)}&v=${Date.now()}`;

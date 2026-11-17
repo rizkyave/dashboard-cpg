@@ -1538,7 +1538,17 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* Tab Modul Tambahan: Validasi Dokumen FSTB & TTB Multi-Lini */}
+          {/* Tab Modul: Validasi Dokumen FSTB (Hulu: Purchasing ➔ Logistik) */}
+          {activeTab === 'validasi-fstb' && (
+            <ValidasiDokumenTab forcedDocType="FSTB" showToast={showToast} />
+          )}
+
+          {/* Tab Modul: Validasi Dokumen TTB (Hilir: Logistik ➔ Kru Kapal / Armada) */}
+          {activeTab === 'validasi-ttb' && (
+            <ValidasiDokumenTab forcedDocType="TTB" showToast={showToast} />
+          )}
+
+          {/* Tab Modul: Validasi Dokumen FSTB & TTB (Legacy / Fallback) */}
           {activeTab === 'validasi-dokumen' && (
             <ValidasiDokumenTab showToast={showToast} />
           )}

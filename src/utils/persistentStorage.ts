@@ -9,20 +9,51 @@ import fs from 'fs';
 export function getPersistentStorageDir(): string {
   const cwd = process.cwd();
 
-  // 1. Direktori permanen bersama di Hostinger (kebal Git Deploy)
-  const sharedUploads = path.resolve(cwd, '../../../shared_uploads');
-  if (fs.existsSync(sharedUploads)) {
-    return sharedUploads;
+  // 1. Cek berbagai kemungkinan jarak relatif menuju folder hbuilds/shared_uploads di Hostinger
+  const candidateSharedPaths = [
+    path.resolve(cwd, '../../../shared_uploads'),
+    path.resolve(cwd, '../../shared_uploads'),
+    path.resolve(cwd, '../shared_uploads'),
+    path.resolve(cwd, '../../../../shared_uploads'),
+    path.resolve(cwd, '../hbuilds/shared_uploads'),
+    path.resolve(cwd, '../../hbuilds/shared_uploads'),
+    path.resolve(cwd, '../../../hbuilds/shared_uploads'),
+    path.resolve(cwd, '../../../../hbuilds/shared_uploads'),
+  ];
+
+  for (const p of candidateSharedPaths) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+        return p;
+      }
+    } catch {}
   }
 
-  // Coba buat folder shared_uploads jika berada di environment Hostinger
-  try {
-    const hbuildsDir = path.resolve(cwd, '../../..');
-    if (fs.existsSync(hbuildsDir) && path.basename(hbuildsDir) === 'hbuilds') {
-      fs.mkdirSync(sharedUploads, { recursive: true });
-      return sharedUploads;
-    }
-  } catch {}
+  // Jika parent berujung di folder domain Hostinger atau hbuilds, pastikan folder shared_uploads dibuat
+  const candidateParents = [
+    path.resolve(cwd, '../../..'),
+    path.resolve(cwd, '../..'),
+    path.resolve(cwd, '..'),
+    path.resolve(cwd, '../../../..'),
+  ];
+
+  for (const parent of candidateParents) {
+    try {
+      if (fs.existsSync(parent)) {
+        const base = path.basename(parent);
+        if (base === 'hbuilds') {
+          const target = path.join(parent, 'shared_uploads');
+          fs.mkdirSync(target, { recursive: true });
+          return target;
+        }
+        const hbuildsInside = path.join(parent, 'hbuilds', 'shared_uploads');
+        if (fs.existsSync(path.join(parent, 'hbuilds'))) {
+          fs.mkdirSync(hbuildsInside, { recursive: true });
+          return hbuildsInside;
+        }
+      }
+    } catch {}
+  }
 
   // 2. Fallback ke public/uploads di dalam proyek lokal
   const localUploads = path.join(cwd, 'public', 'uploads');

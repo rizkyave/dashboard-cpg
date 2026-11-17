@@ -34,6 +34,7 @@ import {
   CheckSquare,
   ChevronUp,
   RotateCcw,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   DocumentValidationRecord,
@@ -58,9 +59,10 @@ import { useAuth } from '@/context/AuthContext';
 
 export interface ValidasiDokumenTabProps {
   showToast?: (msg: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+  forcedDocType?: 'FSTB' | 'TTB';
 }
 
-export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProps) {
+export default function ValidasiDokumenTab({ showToast, forcedDocType }: ValidasiDokumenTabProps) {
   const { user, canEdit, isAdmin, isSupervisor, isManager } = useAuth();
 
   const [records, setRecords] = useState<DocumentValidationRecord[]>([]);
@@ -84,7 +86,13 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
   const [workflowTab, setWorkflowTab] = useState<WorkflowTabType>('ACTIVE');
 
   // Filter & Search State
-  const [filterType, setFilterType] = useState<'ALL' | 'FSTB' | 'TTB'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'FSTB' | 'TTB'>(forcedDocType || 'ALL');
+
+  useEffect(() => {
+    if (forcedDocType) {
+      setFilterType(forcedDocType);
+    }
+  }, [forcedDocType]);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -271,7 +279,9 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     let fstbCount = 0;
     let ttbCount = 0;
 
-    for (const r of records) {
+    const sourceRecords = forcedDocType ? records.filter((r) => r.docType === forcedDocType) : records;
+
+    for (const r of sourceRecords) {
       if (r.docType === 'FSTB') fstbCount++;
       if (r.docType === 'TTB') ttbCount++;
 
@@ -288,7 +298,7 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
     }
 
     return {
-      totalDocuments: records.length,
+      totalDocuments: sourceRecords.length,
       totalFstb: fstbCount,
       totalTtb: ttbCount,
       menungguValidasi: waiting,
@@ -296,25 +306,28 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
       siapKirimArmada: readyDispatch,
       sudahDiterimaArmada: completed,
     };
-  }, [records]);
+  }, [records, forcedDocType]);
 
   // Hitung jumlah berkas aktif vs selesai lengkap administrasi
   const activeCount = useMemo(() => {
-    return records.filter((r) => computeValidationStatus(r).completedCount < 4).length;
-  }, [records]);
+    const sourceRecords = forcedDocType ? records.filter((r) => r.docType === forcedDocType) : records;
+    return sourceRecords.filter((r) => computeValidationStatus(r).completedCount < 4).length;
+  }, [records, forcedDocType]);
 
   const completedCount = useMemo(() => {
-    return records.filter((r) => computeValidationStatus(r).completedCount === 4).length;
-  }, [records]);
+    const sourceRecords = forcedDocType ? records.filter((r) => r.docType === forcedDocType) : records;
+    return sourceRecords.filter((r) => computeValidationStatus(r).completedCount === 4).length;
+  }, [records, forcedDocType]);
 
   // Dokumen pada workflow tab saat ini (untuk badge counter FSTB / TTB dinamis)
   const currentTabRecords = useMemo(() => {
-    return records.filter((r) => {
+    const sourceRecords = forcedDocType ? records.filter((r) => r.docType === forcedDocType) : records;
+    return sourceRecords.filter((r) => {
       const comp = computeValidationStatus(r);
       const isCompleted = comp.completedCount === 4;
       return workflowTab === 'ACTIVE' ? !isCompleted : isCompleted;
     });
-  }, [records, workflowTab]);
+  }, [records, workflowTab, forcedDocType]);
 
   const typeCounts = useMemo(() => {
     let fstb = 0;
@@ -494,18 +507,60 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/25">
-              <ShieldCheck className="size-3.5" />
-              <span>Multi-Lini Quality Assurance &amp; Approval</span>
+              {forcedDocType === 'FSTB' ? (
+                <>
+                  <ClipboardCheck className="size-3.5" />
+                  <span>Validasi FSTB • Hulu (Purchasing ➔ Logistik/Gudang)</span>
+                </>
+              ) : forcedDocType === 'TTB' ? (
+                <>
+                  <FileSignature className="size-3.5" />
+                  <span>Validasi TTB • Hilir (Gudang ➔ Kapal / Armada)</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="size-3.5" />
+                  <span>Multi-Lini Quality Assurance &amp; Approval</span>
+                </>
+              )}
             </div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-              <span>Validasi FSTB &amp; TTB Terpadu</span>
+              <span>
+                {forcedDocType === 'FSTB'
+                  ? 'Validasi Dokumen FSTB'
+                  : forcedDocType === 'TTB'
+                  ? 'Validasi Dokumen TTB'
+                  : 'Validasi FSTB & TTB Terpadu'}
+              </span>
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Verifikasi dan pengesahan tanda tangan digital dari 3 lini operasional:{' '}
-              <strong className="text-cyan-700 dark:text-cyan-300 font-semibold">1. Purchasing</strong>,{' '}
-              <strong className="text-purple-700 dark:text-purple-300 font-semibold">2. Logistik</strong>, dan{' '}
-              <strong className="text-amber-700 dark:text-amber-300 font-semibold">3. Tim Lapangan</strong>{' '}
-              sebelum berkas diserahterimakan ke armada kapal atau penerima akhir.
+              {forcedDocType === 'FSTB' ? (
+                <>
+                  Verifikasi dan pengesahan tanda tangan digital berjenjang berkas FSTB:{' '}
+                  <strong className="text-cyan-700 dark:text-cyan-300 font-semibold">Purchasing Staff</strong> &amp;{' '}
+                  <strong className="text-cyan-700 dark:text-cyan-300 font-semibold">Supervisor</strong> ➔{' '}
+                  <strong className="text-purple-700 dark:text-purple-300 font-semibold">Staf Gudang Logistik</strong> &amp;{' '}
+                  <strong className="text-purple-700 dark:text-purple-300 font-semibold">Supervisor</strong>{' '}
+                  sebelum barang resmi masuk stok persediaan gudang.
+                </>
+              ) : forcedDocType === 'TTB' ? (
+                <>
+                  Verifikasi dan pengesahan 4 kolom otorisasi resmi TTB:{' '}
+                  <strong className="text-purple-700 dark:text-purple-300 font-semibold">Delivered By (Logistik)</strong>,{' '}
+                  <strong className="text-purple-700 dark:text-purple-300 font-semibold">Approved By (Spv Logistik)</strong>,{' '}
+                  <strong className="text-amber-700 dark:text-amber-300 font-semibold">Received By (Kru Kapal)</strong>, dan{' '}
+                  <strong className="text-cyan-700 dark:text-cyan-300 font-semibold">Acknowledge By (Manager)</strong>{' '}
+                  sebelum barang diserahterimakan ke armada kapal.
+                </>
+              ) : (
+                <>
+                  Verifikasi dan pengesahan tanda tangan digital dari 3 lini operasional:{' '}
+                  <strong className="text-cyan-700 dark:text-cyan-300 font-semibold">1. Purchasing</strong>,{' '}
+                  <strong className="text-purple-700 dark:text-purple-300 font-semibold">2. Logistik</strong>, dan{' '}
+                  <strong className="text-amber-700 dark:text-amber-300 font-semibold">3. Tim Lapangan</strong>{' '}
+                  sebelum berkas diserahterimakan ke armada kapal atau penerima akhir.
+                </>
+              )}
             </p>
           </div>
 
@@ -587,17 +642,21 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
         {/* Card 1: Total Dokumen */}
         <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-xs flex items-center gap-3">
           <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-            <FileText className="size-5" />
+            {forcedDocType === 'FSTB' ? <Boxes className="size-5" /> : forcedDocType === 'TTB' ? <PackageCheck className="size-5" /> : <FileText className="size-5" />}
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-              Total Berkas
+              {forcedDocType === 'FSTB' ? 'Total FSTB' : forcedDocType === 'TTB' ? 'Total TTB' : 'Total Berkas'}
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-foreground">
-              {displayMetrics.totalDocuments}
+              {forcedDocType === 'FSTB' ? displayMetrics.totalFstb : forcedDocType === 'TTB' ? displayMetrics.totalTtb : displayMetrics.totalDocuments}
             </div>
             <span className="text-[10px] text-muted-foreground">
-              {displayMetrics.totalFstb} FSTB • {displayMetrics.totalTtb} TTB
+              {forcedDocType === 'FSTB'
+                ? 'Barang Masuk Gudang'
+                : forcedDocType === 'TTB'
+                ? 'Barang Keluar ke Kapal'
+                : `${displayMetrics.totalFstb} FSTB • ${displayMetrics.totalTtb} TTB`}
             </span>
           </div>
         </div>
@@ -609,12 +668,14 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-              Menunggu Validasi
+              {forcedDocType === 'FSTB' ? 'Menunggu Purchasing' : 'Menunggu Validasi'}
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-amber-600 dark:text-amber-400">
               {displayMetrics.menungguValidasi}
             </div>
-            <span className="text-[10px] text-muted-foreground">0/4 PIC tervalidasi</span>
+            <span className="text-[10px] text-muted-foreground">
+              {forcedDocType === 'FSTB' ? 'Belum sah di Lini Purchasing' : '0/4 PIC tervalidasi'}
+            </span>
           </div>
         </div>
 
@@ -625,28 +686,34 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-              Dalam Proses
+              {forcedDocType === 'FSTB' ? 'Penerimaan Gudang' : 'Dalam Proses'}
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
               {displayMetrics.prosesValidasi}
             </div>
-            <span className="text-[10px] text-muted-foreground">1-2 PIC telah sah</span>
+            <span className="text-[10px] text-muted-foreground">
+              {forcedDocType === 'FSTB' ? 'Proses verifikasi Logistik' : '1-2 PIC telah sah'}
+            </span>
           </div>
         </div>
 
-        {/* Card 4: Siap Kirim Armada */}
+        {/* Card 4: Sah Lengkap */}
         <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-xs flex items-center gap-3">
           <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-            <Truck className="size-5" />
+            {forcedDocType === 'FSTB' ? <CheckCircle2 className="size-5" /> : <Truck className="size-5" />}
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-              Siap Kirim Armada
+              {forcedDocType === 'FSTB' ? 'Sah & Masuk Gudang' : 'Siap Kirim / Selesai'}
             </span>
             <div className="text-lg sm:text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
-              {displayMetrics.siapKirimArmada}
+              {forcedDocType === 'FSTB'
+                ? displayMetrics.sudahDiterimaArmada
+                : displayMetrics.siapKirimArmada + displayMetrics.sudahDiterimaArmada}
             </div>
-            <span className="text-[10px] text-muted-foreground">Disetujui &amp; siap kirim</span>
+            <span className="text-[10px] text-muted-foreground">
+              {forcedDocType === 'FSTB' ? 'Sah 4 PIC persediaan' : 'Disetujui / diterima kru'}
+            </span>
           </div>
         </div>
       </div>
@@ -668,41 +735,50 @@ export default function ValidasiDokumenTab({ showToast }: ValidasiDokumenTabProp
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Filter Tipe Dokumen */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            <button
-              type="button"
-              onClick={() => setFilterType('ALL')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer ${
-                filterType === 'ALL'
-                  ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
-                  : 'bg-background hover:bg-muted text-muted-foreground border-border'
-              }`}
-            >
-              Semua ({typeCounts.all})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterType('FSTB')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer inline-flex items-center gap-1.5 ${
-                filterType === 'FSTB'
-                  ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
-                  : 'bg-background hover:bg-muted text-muted-foreground border-border'
-              }`}
-            >
-              <Boxes className="size-3" />
-              <span>FSTB ({typeCounts.fstb})</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterType('TTB')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer inline-flex items-center gap-1.5 ${
-                filterType === 'TTB'
-                  ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
-                  : 'bg-background hover:bg-muted text-muted-foreground border-border'
-              }`}
-            >
-              <PackageCheck className="size-3" />
-              <span>TTB ({typeCounts.ttb})</span>
-            </button>
+            {forcedDocType ? (
+              <div className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1.5">
+                {forcedDocType === 'FSTB' ? <Boxes className="size-3.5" /> : <PackageCheck className="size-3.5" />}
+                <span>Modul Terfokus: Dokumen {forcedDocType} ({typeCounts[forcedDocType.toLowerCase() as 'fstb' | 'ttb']})</span>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setFilterType('ALL')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer ${
+                    filterType === 'ALL'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
+                      : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                  }`}
+                >
+                  Semua ({typeCounts.all})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterType('FSTB')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                    filterType === 'FSTB'
+                      ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
+                      : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                  }`}
+                >
+                  <Boxes className="size-3" />
+                  <span>FSTB ({typeCounts.fstb})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterType('TTB')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                    filterType === 'TTB'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                      : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                  }`}
+                >
+                  <PackageCheck className="size-3" />
+                  <span>TTB ({typeCounts.ttb})</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Filter Status & Search Input */}

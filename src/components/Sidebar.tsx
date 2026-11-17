@@ -194,11 +194,11 @@ export default function Sidebar({
       title: 'Unggah Dokumen FSTB ke Cloud Storage dengan Format Otomatis Sesuai No. FSTB',
     },
     {
-      id: 'validasi-dokumen' as TabType,
-      label: 'Validasi FSTB & TTB',
-      icon: FileSignature,
-      badge: 'Multi-Lini',
-      title: 'Validasi Tanda Tangan Digital Multi-Lini (Purchasing, Logistik, Manajer Procurement) Dokumen FSTB & TTB',
+      id: 'validasi-fstb' as TabType,
+      label: 'Validasi FSTB',
+      icon: ClipboardCheck,
+      badge: 'Hulu',
+      title: 'Validasi Tanda Tangan Digital FSTB: Serah Terima Barang Masuk Gudang (Purchasing ➔ Logistik)',
     },
     {
       id: 'upload-ttb' as TabType,
@@ -206,6 +206,13 @@ export default function Sidebar({
       icon: Truck,
       badge: 'Serah Terima',
       title: 'Pusat Serah Terima TTB: Pengantaran Barang via Notifikasi WhatsApp ke End User & Unggah Berkas Resmi',
+    },
+    {
+      id: 'validasi-ttb' as TabType,
+      label: 'Validasi TTB',
+      icon: FileSignature,
+      badge: 'Hilir',
+      title: 'Validasi Tanda Tangan Digital TTB: Serah Terima Barang Keluar (Logistik ➔ Kru Kapal / Armada)',
     },
     {
       id: 'jadwal-pengantaran' as TabType,

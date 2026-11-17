@@ -10,10 +10,57 @@ function setupPersistentStorage() {
   const cwd = process.cwd();
   
   try {
-    const hbuildsDir = path.resolve(cwd, '../../..');
-    const isHostinger = fs.existsSync(hbuildsDir) && path.basename(hbuildsDir) === 'hbuilds';
-    
-    if (!isHostinger) {
+    const candidateSharedPaths = [
+      path.resolve(cwd, '../../../shared_uploads'),
+      path.resolve(cwd, '../../shared_uploads'),
+      path.resolve(cwd, '../shared_uploads'),
+      path.resolve(cwd, '../../../../shared_uploads'),
+      path.resolve(cwd, '../hbuilds/shared_uploads'),
+      path.resolve(cwd, '../../hbuilds/shared_uploads'),
+      path.resolve(cwd, '../../../hbuilds/shared_uploads'),
+      path.resolve(cwd, '../../../../hbuilds/shared_uploads'),
+    ];
+
+    let sharedUploads = null;
+    for (const p of candidateSharedPaths) {
+      try {
+        if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+          sharedUploads = p;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!sharedUploads) {
+      const candidateParents = [
+        path.resolve(cwd, '../../..'),
+        path.resolve(cwd, '../..'),
+        path.resolve(cwd, '..'),
+        path.resolve(cwd, '../../../..'),
+      ];
+
+      for (const parent of candidateParents) {
+        try {
+          if (fs.existsSync(parent)) {
+            const base = path.basename(parent);
+            if (base === 'hbuilds') {
+              const target = path.join(parent, 'shared_uploads');
+              fs.mkdirSync(target, { recursive: true });
+              sharedUploads = target;
+              break;
+            }
+            const hbuildsInside = path.join(parent, 'hbuilds', 'shared_uploads');
+            if (fs.existsSync(path.join(parent, 'hbuilds'))) {
+              fs.mkdirSync(hbuildsInside, { recursive: true });
+              sharedUploads = hbuildsInside;
+              break;
+            }
+          }
+        } catch {}
+      }
+    }
+
+    if (!sharedUploads) {
       // Di laptop / lokal dev: pastikan public/uploads ada
       const localUploads = path.join(cwd, 'public', 'uploads');
       if (!fs.existsSync(localUploads)) {
@@ -22,7 +69,6 @@ function setupPersistentStorage() {
       return;
     }
 
-    const sharedUploads = path.resolve(hbuildsDir, 'shared_uploads');
     if (!fs.existsSync(sharedUploads)) {
       fs.mkdirSync(sharedUploads, { recursive: true });
       console.log(`[Storage] Membuat direktori permanen: ${sharedUploads}`);

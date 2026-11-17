@@ -153,7 +153,14 @@ async function handleRestamp(req: NextRequest) {
       path.join(process.cwd(), 'public', subfolder, filename),
     ];
 
-    for (const target of saveTargets) {
+    try {
+      const domainDir = path.resolve(process.cwd(), '../../../..');
+      saveTargets.push(path.join(domainDir, 'shared_uploads', subfolder, filename));
+      saveTargets.push(path.join(domainDir, 'shared_uploads', filename));
+    } catch {}
+
+    const uniqueSaveTargets = Array.from(new Set(saveTargets.filter(Boolean)));
+    for (const target of uniqueSaveTargets) {
       try {
         await fs.mkdir(path.dirname(target), { recursive: true });
         await fs.writeFile(target, pdfBuffer);

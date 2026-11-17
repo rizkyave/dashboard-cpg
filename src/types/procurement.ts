@@ -27,6 +27,8 @@ export type TabType =
   | 'upload-fstb'
   | 'upload-ttb'
   | 'validasi-dokumen'
+  | 'validasi-fstb'
+  | 'validasi-ttb'
   | 'serah-terima-lapangan'
   | 'notifikasi-pekerjaan'
   | 'jadwal-pengantaran'
