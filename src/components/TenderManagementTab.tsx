@@ -55,6 +55,13 @@ import {
   triggerBrowserPdfDownload,
 } from '@/utils/tenderDocumentGenerator';
 import { useAuth } from '@/context/AuthContext';
+import ConfidentialMaskedValue from './ConfidentialMaskedValue';
+import ConfidentialUnlockModal from './ConfidentialUnlockModal';
+import {
+  isConfidentialUnlocked,
+  setConfidentialUnlocked,
+  CONFIDENTIAL_CHANGE_EVENT,
+} from '@/utils/confidentialStorage';
 
 interface Props {
   showToast?: (msg: string, type?: 'success' | 'warning' | 'error' | 'info') => void;
@@ -62,7 +69,18 @@ interface Props {
 }
 
 export default function TenderManagementTab({ showToast, onNavigateTab }: Props) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+
+  // Confidential Security State
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [isConfidentialModalOpen, setIsConfidentialModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsUnlocked(isConfidentialUnlocked());
+    const handler = () => setIsUnlocked(isConfidentialUnlocked());
+    window.addEventListener(CONFIDENTIAL_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(CONFIDENTIAL_CHANGE_EVENT, handler);
+  }, []);
 
   // Data States
   const [packages, setPackages] = useState<PratenderPackage[]>([]);
@@ -454,7 +472,10 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs space-y-1 col-span-2 lg:col-span-1">
           <span className="text-[11px] font-medium text-muted-foreground block">Total Efisiensi (Saving)</span>
           <div className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400 font-mono truncate">
-            Rp {metrics.totalSavings.toLocaleString('id-ID')}
+            <ConfidentialMaskedValue
+              value={metrics.totalSavings}
+              showToast={showToast}
+            />
           </div>
           <span className="text-[10px] text-purple-600/80">Penghematan anggaran vs HPS</span>
         </div>
@@ -501,6 +522,41 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
               ))}
             </select>
           )}
+
+          {/* Tombol Proteksi Nilai Finansial (Confidential PIN / Admin Bypass) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (isUnlocked) {
+                setConfidentialUnlocked(false);
+                if (showToast) showToast('Nilai finansial confidential telah disensor / dikunci kembali.', 'info');
+              } else {
+                setIsConfidentialModalOpen(true);
+              }
+            }}
+            className={`h-9 px-3 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer ${
+              isUnlocked
+                ? 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                : 'border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-200'
+            }`}
+            title={
+              isUnlocked
+                ? 'Nilai tender terbuka. Klik untuk menyensor kembali seluruh nilai finansial.'
+                : 'Nilai finansial disensor untuk kerahasiaan. Klik untuk membuka lewat PIN atau otorisasi Administrator.'
+            }
+          >
+            {isUnlocked ? (
+              <>
+                <Unlock className="size-3.5 text-emerald-600" />
+                <span>Nilai Terbuka</span>
+              </>
+            ) : (
+              <>
+                <Lock className="size-3.5 text-amber-600" />
+                <span>Buka Nilai (PIN)</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -557,9 +613,12 @@ export default function TenderManagementTab({ showToast, onNavigateTab }: Props)
                       <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
                         Nilai HPS / OE
                       </span>
-                      <span className="font-mono text-base font-bold text-foreground">
-                        Rp {(pkg.ownerEstimateHps || pkg.totalEstimatedBudget || 0).toLocaleString('id-ID')}
-                      </span>
+                      <div className="text-base font-bold text-foreground">
+                        <ConfidentialMaskedValue
+                          value={pkg.ownerEstimateHps || pkg.totalEstimatedBudget || 0}
+                          showToast={showToast}
+                        />
+                      </div>
                       {pkg.targetClosingDate && dInfo && (
                         <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1">
                           <p>
@@ -1005,9 +1064,12 @@ Salam hormat,
                     <div className="grid grid-cols-2 gap-2 pt-1.5 text-[11px] text-muted-foreground border-t border-amber-500/20">
                       <div>
                         <span>Nilai PO Disahkan:</span>
-                        <p className="font-mono font-bold text-foreground">
-                          Rp {Number(winnerAmount).toLocaleString('id-ID')}
-                        </p>
+                        <div className="font-mono font-bold text-foreground">
+                          <ConfidentialMaskedValue
+                            value={Number(winnerAmount)}
+                            showToast={showToast}
+                          />
+                        </div>
                       </div>
                       <div>
                         <span>Masa Sanggah (3 Hari):</span>
@@ -1463,6 +1525,13 @@ Salam hormat,
           </div>
         </div>
       )}
+
+      {/* MODAL 5: OTORISASI & SENSOR NILAI FINANSIAL CONFIDENTIAL */}
+      <ConfidentialUnlockModal
+        isOpen={isConfidentialModalOpen}
+        onClose={() => setIsConfidentialModalOpen(false)}
+        showToast={showToast}
+      />
     </div>
   );
 }

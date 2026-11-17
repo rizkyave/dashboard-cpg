@@ -51,6 +51,12 @@ import {
   checkUserCanReleaseTier,
   TenderApprovalTierConfig,
 } from '@/utils/tenderApprovalConfig';
+import ConfidentialUnlockModal from './ConfidentialUnlockModal';
+import {
+  isConfidentialUnlocked,
+  setConfidentialUnlocked,
+  CONFIDENTIAL_CHANGE_EVENT,
+} from '@/utils/confidentialStorage';
 
 interface Props {
   isOpen: boolean;
@@ -78,6 +84,25 @@ export default function CommercialBidTabulationModal({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Confidential Security State
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [isConfidentialModalOpen, setIsConfidentialModalOpen] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    setIsUnlocked(isConfidentialUnlocked());
+    const handler = () => setIsUnlocked(isConfidentialUnlocked());
+    window.addEventListener(CONFIDENTIAL_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(CONFIDENTIAL_CHANGE_EVENT, handler);
+  }, []);
+
+  const renderMoney = (num: number | undefined | null) => {
+    if (num === undefined || num === null) return '-';
+    if (isUnlocked) {
+      return `Rp ${Number(num).toLocaleString('id-ID')}`;
+    }
+    return 'Rp ••••••••••';
+  };
 
   // Negotiation BAFO State
   const [negotiatedTotals, setNegotiatedTotals] = useState<Record<string, number>>(() => {
@@ -783,7 +808,7 @@ PT. Cipta Sarana Transindo - CPG Group
                   {packageData.procurementMethod || 'TENDER TERBATAS (PTK/SAP)'}
                 </span>
                 <span className="text-[10px] font-semibold text-muted-foreground">
-                  HPS / OE: <strong className="text-foreground">Rp {totalHps.toLocaleString('id-ID')}</strong>
+                  HPS / OE: <strong className="text-foreground">{renderMoney(totalHps)}</strong>
                 </span>
                 {packageData.targetClosingDate && (() => {
                   const dInfo = getTenderDeadlineInfo(packageData.targetClosingDate);
@@ -822,6 +847,40 @@ PT. Cipta Sarana Transindo - CPG Group
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Tombol Sensor Nilai Confidential (PIN / Admin Bypass) */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isUnlocked) {
+                  setConfidentialUnlocked(false);
+                } else {
+                  setIsConfidentialModalOpen(true);
+                }
+              }}
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold inline-flex items-center gap-1.5 transition cursor-pointer ${
+                isUnlocked
+                  ? 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                  : 'border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-200'
+              }`}
+              title={
+                isUnlocked
+                  ? 'Nilai komersial terbuka. Klik untuk menyensor nilai kembali.'
+                  : 'Nilai komersial disensor untuk kerahasiaan. Klik untuk membuka lewat PIN atau otorisasi Admin.'
+              }
+            >
+              {isUnlocked ? (
+                <>
+                  <Unlock className="size-3 text-emerald-600" />
+                  <span className="hidden sm:inline">Nilai Terbuka</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="size-3 text-amber-600" />
+                  <span className="hidden sm:inline">Buka Nilai (PIN)</span>
+                </>
+              )}
+            </button>
+
             {bids.length === 0 && (
               <button
                 type="button"
@@ -1100,10 +1159,10 @@ PT. Cipta Sarana Transindo - CPG Group
                                           Best
                                         </span>
                                       )}
-                                      <span>Rp {uPrice.toLocaleString('id-ID')}</span>
+                                      <span>{renderMoney(uPrice)}</span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground font-sans">
-                                      Tot: Rp {(uPrice * it.totalQty).toLocaleString('id-ID')}
+                                      Tot: {renderMoney(uPrice * it.totalQty)}
                                     </div>
                                   </td>
                                 );
@@ -1119,7 +1178,7 @@ PT. Cipta Sarana Transindo - CPG Group
                           </td>
                           {bids.map((bid) => (
                             <td key={bid.id} className="py-2.5 px-4 text-right font-mono border-r border-border">
-                              Rp {bid.subtotal.toLocaleString('id-ID')}
+                              {renderMoney(bid.subtotal)}
                             </td>
                           ))}
                         </tr>
@@ -1131,7 +1190,7 @@ PT. Cipta Sarana Transindo - CPG Group
                           </td>
                           {bids.map((bid) => (
                             <td key={bid.id} className="py-2 px-4 text-right font-mono text-foreground border-r border-border">
-                              Rp {bid.deliveryFee.toLocaleString('id-ID')}
+                              {renderMoney(bid.deliveryFee)}
                             </td>
                           ))}
                         </tr>
@@ -1143,7 +1202,7 @@ PT. Cipta Sarana Transindo - CPG Group
                           </td>
                           {bids.map((bid) => (
                             <td key={bid.id} className="py-2 px-4 text-right font-mono text-foreground border-r border-border">
-                              Rp {bid.ppnAmount.toLocaleString('id-ID')}
+                              {renderMoney(bid.ppnAmount)}
                             </td>
                           ))}
                         </tr>
@@ -1175,7 +1234,7 @@ PT. Cipta Sarana Transindo - CPG Group
                                       <Trophy className="size-2.5" /> Peringkat 1
                                     </span>
                                   )}
-                                  <span>Rp {currentTotal.toLocaleString('id-ID')}</span>
+                                  <span>{renderMoney(currentTotal)}</span>
                                   {hasNegotiation && (
                                     <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-sans block w-full">
                                       (Hasil BAFO)
@@ -1190,7 +1249,7 @@ PT. Cipta Sarana Transindo - CPG Group
                         {/* ROW: SELISIH VS HPS */}
                         <tr className="text-xs">
                           <td colSpan={3} className="py-2.5 px-4 text-right sticky left-0 bg-card z-10 border-r border-border text-muted-foreground">
-                            Deviasi terhadap HPS (Rp {totalHps.toLocaleString('id-ID')})
+                            Deviasi terhadap HPS ({renderMoney(totalHps)})
                           </td>
                           {bids.map((bid) => {
                             const currentTotal =
@@ -1210,9 +1269,14 @@ PT. Cipta Sarana Transindo - CPG Group
                                     : 'text-rose-600 dark:text-rose-400'
                                 }`}
                               >
-                                {isUnderHps ? 'Hemat ' : 'Di atas HPS +'}
-                                {Math.abs(diffPct).toFixed(1)}% (
-                                {diff <= 0 ? '-' : '+'}Rp {Math.abs(diff).toLocaleString('id-ID')})
+                                {isUnlocked ? (
+                                  <>
+                                    {isUnderHps ? 'Hemat ' : 'Di atas HPS +'}
+                                    {Math.abs(diffPct).toFixed(1)}% ({diff <= 0 ? '-' : '+'}Rp {Math.abs(diff).toLocaleString('id-ID')})
+                                  </>
+                                ) : (
+                                  'Rp ••••••••••'
+                                )}
                               </td>
                             );
                           })}
@@ -1516,7 +1580,7 @@ PT. Cipta Sarana Transindo - CPG Group
                           </h4>
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
-                          <span>Penawaran Awal: <strong className="font-mono text-foreground">Rp {initialPrice.toLocaleString('id-ID')}</strong></span>
+                          <span>Penawaran Awal: <strong className="font-mono text-foreground">{renderMoney(initialPrice)}</strong></span>
                           {!isFailed && idx === 0 && (
                             <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
                               Terendah Saat Ini
@@ -1537,8 +1601,21 @@ PT. Cipta Sarana Transindo - CPG Group
                             <input
                               type="text"
                               inputMode="numeric"
-                              value={currentNeg ? Number(currentNeg).toLocaleString('id-ID') : ''}
+                              value={
+                                !isUnlocked
+                                  ? '••••••••••'
+                                  : currentNeg
+                                  ? Number(currentNeg).toLocaleString('id-ID')
+                                  : ''
+                              }
+                              onClick={() => {
+                                if (!isUnlocked) setIsConfidentialModalOpen(true);
+                              }}
                               onChange={(e) => {
+                                if (!isUnlocked) {
+                                  setIsConfidentialModalOpen(true);
+                                  return;
+                                }
                                 const rawDigits = e.target.value.replace(/\D/g, '');
                                 const numVal = rawDigits ? Number(rawDigits) : 0;
                                 setNegotiatedTotals({
@@ -1549,18 +1626,22 @@ PT. Cipta Sarana Transindo - CPG Group
                               disabled={isDataFrozen}
                               placeholder="0"
                               className={`w-full h-8 pl-8 pr-2.5 rounded-lg border border-border font-mono font-bold text-xs focus:ring-1 focus:ring-primary focus:outline-none ${
-                                isDataFrozen ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-background text-foreground'
+                                isDataFrozen
+                                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                  : !isUnlocked
+                                  ? 'bg-muted/50 cursor-pointer text-muted-foreground'
+                                  : 'bg-background text-foreground'
                               }`}
                             />
                           </div>
                           {saving > 0 && (
                             <span className="text-[11px] text-emerald-600 font-semibold mt-1 inline-block">
-                              ✓ Berhasil dinegosiasikan turun Rp {saving.toLocaleString('id-ID')}
+                              ✓ Berhasil dinegosiasikan turun {renderMoney(saving)}
                             </span>
                           )}
                           {!isFailed && idx === 0 && rankedBids[1] && (
                             <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium mt-1">
-                              ★ Lebih hemat Rp {Math.max(0, (negotiatedTotals[rankedBids[1].id] !== undefined ? negotiatedTotals[rankedBids[1].id] : rankedBids[1].grandTotal) - currentNeg).toLocaleString('id-ID')} dibanding penawar terdekat ({rankedBids[1].vendorName})
+                              ★ Lebih hemat {renderMoney(Math.max(0, (negotiatedTotals[rankedBids[1].id] !== undefined ? negotiatedTotals[rankedBids[1].id] : rankedBids[1].grandTotal) - currentNeg))} dibanding penawar terdekat ({rankedBids[1].vendorName})
                             </div>
                           )}
                         </div>
@@ -1644,7 +1725,7 @@ PT. Cipta Sarana Transindo - CPG Group
                       return (
                         <option key={b.id} value={b.id}>
                           {isLowest ? '🏆 [Peringkat 1 Terendah BAFO] ' : `[Peringkat ${idx + 1}] `}
-                          {b.vendorName} — Rp {bPrice.toLocaleString('id-ID')}
+                          {b.vendorName} — {renderMoney(bPrice)}
                         </option>
                       );
                     })}
@@ -1683,11 +1764,11 @@ PT. Cipta Sarana Transindo - CPG Group
                   <div className="text-right">
                     <span className="text-[10px] text-muted-foreground block">Nilai Kontrak / PO Akhir</span>
                     <span className="text-lg font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
-                      Rp {winningBidValue.toLocaleString('id-ID')}
+                      {renderMoney(winningBidValue)}
                     </span>
                     {winningBid && winningBid.grandTotal !== winningBidValue && (
                       <span className="text-[10px] text-muted-foreground block line-through">
-                        Awal: Rp {winningBid.grandTotal.toLocaleString('id-ID')}
+                        Awal: {renderMoney(winningBid.grandTotal)}
                       </span>
                     )}
                   </div>
@@ -1696,12 +1777,12 @@ PT. Cipta Sarana Transindo - CPG Group
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-border/60 text-xs">
                   <div>
                     <span className="text-muted-foreground text-[10px] block">Owner Estimate (HPS)</span>
-                    <strong className="font-mono">Rp {totalHps.toLocaleString('id-ID')}</strong>
+                    <strong className="font-mono">{renderMoney(totalHps)}</strong>
                   </div>
                   <div>
                     <span className="text-muted-foreground text-[10px] block">Efisiensi Total (Saving)</span>
                     <strong className="font-mono text-emerald-600">
-                      Rp {(totalHps - winningBidValue).toLocaleString('id-ID')}
+                      {renderMoney(totalHps - winningBidValue)}
                     </strong>
                   </div>
                   <div>
@@ -2213,6 +2294,12 @@ PT. Cipta Sarana Transindo - CPG Group
           </div>
         </div>
       </div>
+
+      {/* MODAL OTORISASI & SENSOR NILAI FINANSIAL CONFIDENTIAL */}
+      <ConfidentialUnlockModal
+        isOpen={isConfidentialModalOpen}
+        onClose={() => setIsConfidentialModalOpen(false)}
+      />
     </div>
   );
 }
