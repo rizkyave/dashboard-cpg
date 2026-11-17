@@ -88,7 +88,7 @@ import { useAuth } from '@/context/AuthContext';
 import { canAccessTab, getRoleDisplayName, getDefaultTabForRole } from '@/types/auth';
 
 import ToastNotification from '@/components/ToastNotification';
-import { PanelLeftOpen, ChevronDown, Lock } from 'lucide-react';
+import { PanelLeftOpen, ChevronDown, Lock, Anchor } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: isAuthLoading, isAdmin, isVisitor } = useAuth();
@@ -750,7 +750,7 @@ export default function DashboardPage() {
       const targetTab = getDefaultTabForRole(user.role);
       setActiveTab(targetTab);
       showToast(
-        `Akses ke modul "${activeTab}" dibatasi untuk peran ${getRoleDisplayName(user.role)}. Dialihkan ke menu utama Anda.`,
+        `⚓ Jangkar Lagi Turun: Rute modul "${activeTab}" sementara ditutup oleh Administrator untuk peran ${getRoleDisplayName(user.role)}.`,
         'warning'
       );
     }
@@ -1309,13 +1309,18 @@ export default function DashboardPage() {
 
           {/* Route Guard: Akses Terkunci Jika Modul Dilarang untuk Role Pengguna */}
           {user && user.role !== 'admin' && !canAccessTab(user.role, activeTab) ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-xs my-10 mx-auto max-w-md">
-              <div className="p-4 rounded-full bg-rose-500/10 text-rose-500 mb-4 border border-rose-500/20">
-                <Lock className="size-8" />
+            <div className="flex flex-col items-center justify-center p-10 sm:p-12 text-center bg-card rounded-2xl border border-border shadow-xs my-10 mx-auto max-w-md animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 rounded-full bg-rose-500/10 text-rose-500 mb-4 border border-rose-500/20 relative">
+                <Anchor className="size-8 text-rose-500 animate-pulse" />
+                <span className="absolute -bottom-1 -right-1 p-1 bg-background rounded-full border border-rose-500/30 text-rose-500">
+                  <Lock className="size-3.5" />
+                </span>
               </div>
-              <h3 className="text-base font-bold text-foreground mb-1.5">Akses Modul Dibatasi</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Wewenang untuk modul ini saat ini disetel ke <strong className="text-rose-600 dark:text-rose-400">Dilarang</strong> oleh Administrator. Hubungi Administrator sistem jika Anda memerlukan pembukaan akses ke fitur ini.
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-2">
+                Jangkar Lagi Turun, Modul Berhenti Berlayar ⚓
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Rute menuju fitur ini sementara ditutup oleh Administrator demi kelancaran lalu lintas data. Butuh izin berlayar darurat? Langsung kontak Administrator sistem, ya!
               </p>
             </div>
           ) : (
