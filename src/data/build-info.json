@@ -1,9 +1,9 @@
 {
   "version": "v2.6.0",
-  "gitCommit": "b0a197c",
-  "gitDate": "2026-11-19 10:38:48 +0800",
-  "gitMessage": "fix(rbac): pulihkan matriks hak akses seluruh role, tambah guardrail anomali, dan dialog proteksi set-dilarang",
-  "buildTime": "2026-11-19T02:45:34.548Z",
-  "buildId": "CPG-b0a197c-1795056334548",
+  "gitCommit": "354a504",
+  "gitDate": "2026-11-19 10:48:03 +0800",
+  "gitMessage": "feat(versioning): implementasi auto-update detector, anti-cache headers, dan sinkronisasi versi real-time untuk seluruh pengguna",
+  "buildTime": "2026-11-19T05:24:03.158Z",
+  "buildId": "CPG-354a504-1795065843158",
   "environment": "production"
 }

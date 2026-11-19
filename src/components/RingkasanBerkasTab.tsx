@@ -206,44 +206,44 @@ export default function RingkasanBerkasTab({
       }
 
       // 3. Process TTB Photos (Mendukung Multi-Key: nomor TTB lengkap, nomor urut digit, armada, dll.)
+      const photoMapObj: Record<string, string[]> = {};
+
+      const addPhotoKey = (k?: string | null, url?: string) => {
+        if (!k || !url) return;
+        const clean = k.trim().toLowerCase();
+        if (!clean) return;
+        if (!photoMapObj[clean]) photoMapObj[clean] = [];
+        if (!photoMapObj[clean].includes(url)) photoMapObj[clean].push(url);
+      };
+
       if (photosRes.status === 'fulfilled' && Array.isArray(photosRes.value?.photos)) {
-        const map: Record<string, string[]> = {};
-
-        const addKey = (k?: string | null, url?: string) => {
-          if (!k || !url) return;
-          const clean = k.trim().toLowerCase();
-          if (!clean) return;
-          if (!map[clean]) map[clean] = [];
-          if (!map[clean].includes(url)) map[clean].push(url);
-        };
-
         for (const photo of photosRes.value.photos) {
           const url = photo.url || `/api/ttb-photos/file?name=${encodeURIComponent(photo.name)}`;
           const photoName = String(photo.name || '').trim();
 
           // 1. Dari property noTtb
           if (photo.noTtb) {
-            addKey(photo.noTtb, url);
-            addKey(photo.noTtb.replace(/[^a-zA-Z0-9]/g, ''), url);
+            addPhotoKey(photo.noTtb, url);
+            addPhotoKey(photo.noTtb.replace(/[^a-zA-Z0-9]/g, ''), url);
           }
 
           // 2. Dari armada
           if (photo.armada) {
-            addKey(photo.armada, url);
+            addPhotoKey(photo.armada, url);
           }
 
           // 3. Dari ttbInfo (prefix + numbers)
           if (photo.ttbInfo) {
             const pfx = (photo.ttbInfo.prefix || '').toLowerCase();
             for (const num of photo.ttbInfo.numbers || []) {
-              addKey(num, url);
-              addKey(String(parseInt(num, 10)), url);
+              addPhotoKey(num, url);
+              addPhotoKey(String(parseInt(num, 10)), url);
               if (pfx) {
-                addKey(`${pfx}-ttb-${num}`, url);
-                addKey(`${pfx}-ttb-26-${num}`, url);
-                addKey(`${pfx}-${num}`, url);
-                addKey(`${pfx}ttb${num}`, url);
-                addKey(`${pfx}${num}`, url);
+                addPhotoKey(`${pfx}-ttb-${num}`, url);
+                addPhotoKey(`${pfx}-ttb-26-${num}`, url);
+                addPhotoKey(`${pfx}-${num}`, url);
+                addPhotoKey(`${pfx}ttb${num}`, url);
+                addPhotoKey(`${pfx}${num}`, url);
               }
             }
           }
@@ -255,31 +255,53 @@ export default function RingkasanBerkasTab({
             const pfx = m[1].toLowerCase();
             const yr = m[2];
             const num = m[3];
-            addKey(m[0].replace(/\s+/g, '-'), url);
-            addKey(num, url);
-            addKey(`${pfx}-${num}`, url);
-            addKey(`${pfx}-ttb-${num}`, url);
-            if (yr) addKey(`${pfx}-ttb-${yr}-${num}`, url);
-            addKey(`${pfx}ttb${num}`, url);
-            addKey(`${pfx}${num}`, url);
+            addPhotoKey(m[0].replace(/\s+/g, '-'), url);
+            addPhotoKey(num, url);
+            addPhotoKey(`${pfx}-${num}`, url);
+            addPhotoKey(`${pfx}-ttb-${num}`, url);
+            if (yr) addPhotoKey(`${pfx}-ttb-${yr}-${num}`, url);
+            addPhotoKey(`${pfx}ttb${num}`, url);
+            addPhotoKey(`${pfx}${num}`, url);
           }
 
           // Ekstraksi nomor 4-6 digit mandiri dari nama berkas
           const digitMatches = photoName.match(/\b\d{4,6}\b/g) || [];
           for (const d of digitMatches) {
             if (/^202[4-9]$/.test(d)) continue; // Abaikan tahun
-            addKey(d, url);
-            addKey(d.padStart(5, '0'), url);
+            addPhotoKey(d, url);
+            addPhotoKey(d.padStart(5, '0'), url);
           }
 
           // Ekstraksi nama armada dari awalan nama berkas (jika ada)
           const armadaPrefixMatch = photoName.match(/^(?:TB|MT|SPOB|TK|BG|OB|KM|SV|OFFICE)\s+[^_.\-]+/i);
           if (armadaPrefixMatch) {
-            addKey(armadaPrefixMatch[0].trim(), url);
+            addPhotoKey(armadaPrefixMatch[0].trim(), url);
           }
         }
-        setPhotoMap(map);
       }
+
+      // 4. Kumpulkan juga berkas foto fisik logistik (JPG) dari upload TTB berpasangan agar menyatu dalam satu baris
+      if (ttbRes.status === 'fulfilled' && Array.isArray(ttbRes.value?.items)) {
+        for (const item of ttbRes.value.items) {
+          const isPdf = String(item.renamedFileName || '').toLowerCase().endsWith('.pdf') || item.fileType === 'application/pdf';
+          if (!isPdf) {
+            const url = item.fileUrl || `/api/upload-ttb/file?name=${encodeURIComponent(item.renamedFileName)}`;
+            addPhotoKey(item.noTtb, url);
+            addPhotoKey(item.cleanNoTtb, url);
+            addPhotoKey(item.noFpb, url);
+            addPhotoKey(item.noPo, url);
+            addPhotoKey(item.armada, url);
+            addPhotoKey(item.renamedFileName, url);
+            const digits = (item.cleanNoTtb || item.noTtb || '').replace(/\D/g, '');
+            if (digits) {
+              addPhotoKey(digits, url);
+              if (digits.length >= 5) addPhotoKey(digits.slice(-5), url);
+            }
+          }
+        }
+      }
+
+      setPhotoMap(photoMapObj);
 
       // 4. Process e-FPB files (Verified R2 / local internal PDFs)
       const verifiedEfpbMap: Record<string, string> = {};

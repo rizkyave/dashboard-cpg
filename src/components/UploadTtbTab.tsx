@@ -110,6 +110,30 @@ interface TtbSuggestion {
   description?: string;
 }
 
+export interface ConsolidatedTtbHistoryItem {
+  id: string;
+  noTtb: string;
+  cleanNoTtb: string;
+  armada: string;
+  noPo?: string;
+  noFpb?: string;
+  noFstb?: string;
+  receivedDate?: string;
+  uploadedAt?: string;
+  uploaderName?: string;
+  keterangan?: string;
+  pdfItem?: UploadedTtbItem;
+  hasPdf: boolean;
+  photoItems: UploadedTtbItem[];
+  hasPhotos: boolean;
+  photosCount: number;
+  allFiles: UploadedTtbItem[];
+  completeness: 'COMPLETE' | 'PDF_ONLY' | 'PHOTO_ONLY';
+  hasPhysicalPhotos?: boolean;
+  isArmadaReceived?: boolean;
+  representativeItem: UploadedTtbItem;
+}
+
 /**
  * Mendeteksi Nomor TTB, Armada, dan No. FPB/PO/FSTB secara cerdas dan presisi dari nama berkas dan dataset.
  */
@@ -1531,6 +1555,39 @@ export default function UploadTtbTab({
     }
   };
 
+  // Hapus seluruh berkas yang tergabung dalam satu kesatuan nomor TTB
+  const handleDeleteConsolidatedItem = async (item: ConsolidatedTtbHistoryItem) => {
+    if (!isAdmin) {
+      showToast?.('Akses ditolak: Hanya Administrator yang berwenang menghapus berkas TTB.', 'error');
+      return;
+    }
+    const count = item.allFiles.length;
+    if (!window.confirm(`Hapus seluruh ${count} berkas untuk TTB "${item.cleanNoTtb || item.noTtb}" dari penyimpanan Cloud?`)) {
+      return;
+    }
+    setDeletingId(item.id);
+    try {
+      for (const f of item.allFiles) {
+        await fetch(
+          `/api/upload-ttb?id=${encodeURIComponent(f.id)}&key=${encodeURIComponent(f.r2Key || '')}&fileName=${encodeURIComponent(f.renamedFileName)}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'x-user-role': user?.role || '',
+            },
+          }
+        );
+      }
+      showToast?.(`Seluruh berkas TTB "${item.cleanNoTtb || item.noTtb}" berhasil dihapus.`, 'success');
+      const deletedIds = new Set(item.allFiles.map((f) => f.id));
+      setHistory((prev) => prev.filter((h) => !deletedIds.has(h.id)));
+    } catch (err) {
+      showToast?.((err as Error).message, 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   // Auto-enrich riwayat pengarsipan TTB dengan data dari Monitoring Internal, Armada, dan Sisa Layanan
   const enrichedHistory = useMemo(() => {
     return enrichTtbRecords(history, {
@@ -1540,6 +1597,104 @@ export default function UploadTtbTab({
     });
   }, [history, procurementItems, armadaItems, sisaLayananItems]);
 
+  // Konsolidasi riwayat TTB: Kompilasi berkas Dokumen Scan PDF & Foto Fisik Logistik JPG bernomor TTB sama ke dalam 1 baris terpadu
+  const consolidatedHistory = useMemo<ConsolidatedTtbHistoryItem[]>(() => {
+    const map = new Map<string, ConsolidatedTtbHistoryItem>();
+
+    for (const item of enrichedHistory) {
+      const rawKey = (item.cleanNoTtb || item.noTtb || item.renamedFileName || '').trim();
+      const cleanKey = sanitizeTtbNumber(rawKey) || rawKey.toUpperCase().replace(/\.[^/.]+$/, '');
+      if (!cleanKey) continue;
+
+      const isPdf =
+        item.fileType === 'application/pdf' ||
+        String(item.renamedFileName || '').toLowerCase().endsWith('.pdf') ||
+        String(item.r2Key || '').toLowerCase().endsWith('.pdf') ||
+        String(item.r2Key || '').toLowerCase().startsWith('ttb-documents/');
+
+      if (!map.has(cleanKey)) {
+        map.set(cleanKey, {
+          id: item.id,
+          noTtb: item.noTtb || cleanKey,
+          cleanNoTtb: cleanKey,
+          armada: item.armada && item.armada !== '-' ? item.armada : '',
+          noPo: item.noPo && item.noPo !== '-' ? item.noPo : undefined,
+          noFpb: item.noFpb && item.noFpb !== '-' ? item.noFpb : undefined,
+          noFstb: item.noFstb && item.noFstb !== '-' ? item.noFstb : undefined,
+          receivedDate: item.receivedDate || '',
+          uploadedAt: item.uploadedAt || '',
+          uploaderName: item.uploaderName && item.uploaderName !== '-' ? item.uploaderName : undefined,
+          keterangan: item.keterangan || undefined,
+          pdfItem: undefined,
+          hasPdf: false,
+          photoItems: [],
+          hasPhotos: false,
+          photosCount: 0,
+          allFiles: [],
+          completeness: 'PHOTO_ONLY',
+          hasPhysicalPhotos: item.hasPhysicalPhotos,
+          isArmadaReceived: item.isArmadaReceived,
+          representativeItem: item,
+        });
+      }
+
+      const entry = map.get(cleanKey)!;
+      entry.allFiles.push(item);
+
+      if ((!entry.armada || entry.armada === '-') && item.armada && item.armada !== '-') {
+        entry.armada = item.armada;
+      }
+      if ((!entry.noPo || entry.noPo === '-') && item.noPo && item.noPo !== '-') {
+        entry.noPo = item.noPo;
+      }
+      if ((!entry.noFpb || entry.noFpb === '-') && item.noFpb && item.noFpb !== '-') {
+        entry.noFpb = item.noFpb;
+      }
+      if ((!entry.noFstb || entry.noFstb === '-') && item.noFstb && item.noFstb !== '-') {
+        entry.noFstb = item.noFstb;
+      }
+      if ((!entry.uploaderName || entry.uploaderName === '-') && item.uploaderName && item.uploaderName !== '-') {
+        entry.uploaderName = item.uploaderName;
+      }
+      if (!entry.receivedDate && item.receivedDate) {
+        entry.receivedDate = item.receivedDate;
+      }
+      if (item.uploadedAt && (!entry.uploadedAt || new Date(item.uploadedAt).getTime() > new Date(entry.uploadedAt).getTime())) {
+        entry.uploadedAt = item.uploadedAt;
+      }
+      if (item.hasPhysicalPhotos) entry.hasPhysicalPhotos = true;
+      if (item.isArmadaReceived) entry.isArmadaReceived = true;
+
+      if (isPdf) {
+        if (!entry.pdfItem) {
+          entry.pdfItem = item;
+          entry.hasPdf = true;
+          entry.id = item.id;
+          entry.representativeItem = item;
+        }
+      } else {
+        entry.photoItems.push(item);
+        entry.hasPhotos = true;
+        entry.photosCount = entry.photoItems.length;
+        if (!entry.hasPdf) {
+          entry.representativeItem = item;
+        }
+      }
+
+      if (entry.hasPdf && entry.hasPhotos) {
+        entry.completeness = 'COMPLETE';
+      } else if (entry.hasPdf) {
+        entry.completeness = 'PDF_ONLY';
+      } else {
+        entry.completeness = 'PHOTO_ONLY';
+      }
+    }
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime()
+    );
+  }, [enrichedHistory]);
+
   // Statistik ringkas alur pengantaran via WA & Validasi SOP
   const dispatchStats = useMemo(() => {
     let unvalidatedCount = 0;
@@ -1547,10 +1702,10 @@ export default function UploadTtbTab({
     let pendingCrewCount = 0;
     let completedCount = 0;
 
-    for (const h of enrichedHistory) {
-      const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+    for (const h of consolidatedHistory) {
+      const key = h.cleanNoTtb.toUpperCase().trim();
       const token = remoteTokens[key];
-      const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+      const isReceived = h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
       const isWaiting = !isReceived && Boolean(token && !token.isUsed);
 
       const valRecord = validationsMap[key];
@@ -1569,33 +1724,33 @@ export default function UploadTtbTab({
     }
 
     return {
-      total: enrichedHistory.length,
+      total: consolidatedHistory.length,
       unvalidatedCount,
       readyCount,
       pendingCrewCount,
       completedCount,
     };
-  }, [enrichedHistory, remoteTokens, validationsMap]);
+  }, [consolidatedHistory, remoteTokens, validationsMap]);
 
   // Filter riwayat berdasarkan pencarian & status pengantaran WA
   const filteredHistory = useMemo(() => {
-    let list = enrichedHistory;
+    let list = consolidatedHistory;
 
     // Filter status tab
     if (statusFilterTab === 'TUGAS_HARIAN') {
       list = list.filter((h) => {
-        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const key = h.cleanNoTtb.toUpperCase().trim();
         const token = remoteTokens[key];
-        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isReceived = h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
         const insp = inspectionsMap[key];
         // Tugas harian staf TTB / end_user: belum selesai diterima ATAU ada temuan sebagian/rusak
         return !isReceived || (insp && insp.conditionStatus !== 'LENGKAP_BAIK');
       });
     } else if (statusFilterTab === 'UNVALIDATED') {
       list = list.filter((h) => {
-        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const key = h.cleanNoTtb.toUpperCase().trim();
         const token = remoteTokens[key];
-        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isReceived = h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
         const isWaiting = !isReceived && Boolean(token && !token.isUsed);
         const valRecord = validationsMap[key];
         const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
@@ -1604,9 +1759,9 @@ export default function UploadTtbTab({
       });
     } else if (statusFilterTab === 'READY_WA') {
       list = list.filter((h) => {
-        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const key = h.cleanNoTtb.toUpperCase().trim();
         const token = remoteTokens[key];
-        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isReceived = h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
         const isWaiting = !isReceived && Boolean(token && !token.isUsed);
         const valRecord = validationsMap[key];
         const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
@@ -1615,16 +1770,16 @@ export default function UploadTtbTab({
       });
     } else if (statusFilterTab === 'PENDING_CREW') {
       list = list.filter((h) => {
-        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const key = h.cleanNoTtb.toUpperCase().trim();
         const token = remoteTokens[key];
-        const isReceived = h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        const isReceived = h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
         return !isReceived && Boolean(token && !token.isUsed);
       });
     } else if (statusFilterTab === 'COMPLETED') {
       list = list.filter((h) => {
-        const key = (h.cleanNoTtb || h.noTtb || '').toUpperCase().trim();
+        const key = h.cleanNoTtb.toUpperCase().trim();
         const token = remoteTokens[key];
-        return h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
+        return h.hasPhotos || h.hasPhysicalPhotos || h.isArmadaReceived || token?.isUsed;
       });
     }
 
@@ -1637,10 +1792,10 @@ export default function UploadTtbTab({
         h.armada?.toLowerCase().includes(q) ||
         h.noPo?.toLowerCase().includes(q) ||
         h.noFpb?.toLowerCase().includes(q) ||
-        h.renamedFileName?.toLowerCase().includes(q) ||
-        h.uploaderName?.toLowerCase().includes(q)
+        h.uploaderName?.toLowerCase().includes(q) ||
+        h.allFiles.some((f) => f.renamedFileName?.toLowerCase().includes(q))
     );
-  }, [enrichedHistory, searchHistory, statusFilterTab, remoteTokens, validationsMap, inspectionsMap]);
+  }, [consolidatedHistory, searchHistory, statusFilterTab, remoteTokens, validationsMap, inspectionsMap]);
 
   // Pagination state untuk riwayat tabel (10 data per halaman)
   const [historyPage, setHistoryPage] = useState<number>(1);
@@ -1655,20 +1810,19 @@ export default function UploadTtbTab({
   // Reset pagination saat pencarian atau riwayat berubah
   useEffect(() => {
     setHistoryPage(1);
-  }, [searchHistory, enrichedHistory.length]);
+  }, [searchHistory, consolidatedHistory.length]);
 
   // Statistik Ringkasan (4 Stat Cards)
   const stats = useMemo(() => {
-    const total = enrichedHistory.length;
-    const pdfCount = enrichedHistory.filter(
-      (h) => h.fileType === 'application/pdf' || h.renamedFileName.toLowerCase().endsWith('.pdf')
-    ).length;
-    const imgCount = total - pdfCount;
+    const total = consolidatedHistory.length;
+    const completeCount = consolidatedHistory.filter((h) => h.completeness === 'COMPLETE').length;
+    const pdfCount = consolidatedHistory.filter((h) => h.hasPdf).length;
+    const imgCount = consolidatedHistory.filter((h) => h.hasPhotos).length;
     const r2Count = enrichedHistory.filter(
       (h) => h.storageProvider === 'CLOUDFLARE_R2' || h.status === 'STORED_IN_CLOUDFLARE_R2' || h.fileUrl
     ).length;
-    return { total, pdfCount, imgCount, r2Count };
-  }, [enrichedHistory]);
+    return { total, completeCount, pdfCount, imgCount, r2Count };
+  }, [consolidatedHistory, enrichedHistory]);
 
   const distinctTtbCount = useMemo(() => {
     const set = new Set(queue.map((item) => sanitizeTtbNumber(item.noTtb.trim() || (queue.length === 1 ? batchNoTtb.trim() : ''))).filter(Boolean));
@@ -2584,12 +2738,12 @@ export default function UploadTtbTab({
           <table className="w-full text-left text-xs">
             <thead className="sticky top-0 z-20 bg-muted/95 dark:bg-card/95 backdrop-blur-md text-muted-foreground font-semibold border-b border-border uppercase text-[10px] tracking-wider shadow-xs">
               <tr>
-                <th className="py-2.5 px-3">NO. TTB RESMI</th>
+                <th className="py-2.5 px-3">NO. TTB RESMI &amp; KELENGKAPAN BERKAS</th>
                 <th className="py-2.5 px-3">ARMADA / UNIT</th>
                 <th className="py-2.5 px-3">NO. DO / PO</th>
                 <th className="py-2.5 px-3">PENGUNGGAH</th>
                 <th className="py-2.5 px-3">TANGGAL &amp; WAKTU UNGGAH</th>
-                <th className="py-2.5 px-3">STATUS</th>
+                <th className="py-2.5 px-3">STATUS OPERASIONAL</th>
                 <th className="py-2.5 px-3 text-right">AKSI</th>
               </tr>
             </thead>
@@ -2611,7 +2765,7 @@ export default function UploadTtbTab({
                 paginatedHistory.map((item) => (
                   <tr key={item.id} className="hover:bg-muted/30 transition">
                     <td className="py-2.5 px-3 font-mono font-bold text-foreground">
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {(() => {
                             const parsed = parseTtbList(item.noTtb);
@@ -2628,21 +2782,21 @@ export default function UploadTtbTab({
                             return <span>{item.noTtb}</span>;
                           })()}
 
-                          {(() => {
-                            const isPdf = item.fileType === 'application/pdf' || String(item.renamedFileName || '').toLowerCase().endsWith('.pdf');
-                            return (
-                              <span
-                                className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold tracking-tight border shrink-0 ${
-                                  isPdf
-                                    ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
-                                    : 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
-                                }`}
-                                title={item.renamedFileName}
-                              >
-                                {isPdf ? 'PDF Scan' : 'Foto Fisik'}
-                              </span>
-                            );
-                          })()}
+                          {/* Badge Status Kelengkapan Pasangan Dokumen PDF + Foto JPG */}
+                          {item.completeness === 'COMPLETE' ? (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0">
+                              <Sparkles className="size-2.5 text-emerald-500" />
+                              <span>Lengkap: PDF + Foto</span>
+                            </span>
+                          ) : item.completeness === 'PDF_ONLY' ? (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 shrink-0">
+                              Hanya Dokumen PDF
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 shrink-0">
+                              Hanya Foto Fisik
+                            </span>
+                          )}
 
                           <button
                             type="button"
@@ -2657,11 +2811,49 @@ export default function UploadTtbTab({
                             )}
                           </button>
                         </div>
-                        {item.renamedFileName && (
-                          <span className="text-[10px] font-mono text-muted-foreground/80 truncate max-w-[240px]" title={item.renamedFileName}>
-                            {item.renamedFileName}
-                          </span>
-                        )}
+
+                        {/* Berkas Terkompilasi Dalam 1 Baris: Dokumen PDF Scan & Foto Fisik Logistik JPG */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {/* 1. Dokumen TTB Resmi (PDF Scan) */}
+                          {item.hasPdf && item.pdfItem ? (
+                            <button
+                              type="button"
+                              onClick={() => setActivePreview(item.pdfItem!)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/15 hover:bg-blue-500/25 text-blue-700 dark:text-blue-300 border border-blue-500/30 transition cursor-pointer shadow-2xs"
+                              title={`Lihat Dokumen Scan PDF: ${item.pdfItem.renamedFileName} (${formatFileSize(item.pdfItem.fileSize)})`}
+                            >
+                              <FileText className="size-3 text-blue-500 shrink-0" />
+                              <span className="font-mono">PDF Scan</span>
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-muted/60 text-muted-foreground border border-border">
+                              <FileText className="size-2.5 text-muted-foreground/60" />
+                              <span>Belum Ada PDF</span>
+                            </span>
+                          )}
+
+                          {/* 2. Gambar Fisik di Logistik (JPG) */}
+                          {item.hasPhotos && item.photoItems.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMediaItem(item.photoItems[0]);
+                                setMediaModalTab('photos');
+                                setMediaModalTtb(item.cleanNoTtb);
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 transition cursor-pointer shadow-2xs"
+                              title={`Lihat ${item.photosCount} Foto Fisik Logistik: ${item.photoItems.map((p) => p.renamedFileName).join(', ')}`}
+                            >
+                              <Camera className="size-3 text-purple-500 shrink-0" />
+                              <span className="font-mono">{item.photosCount} Foto JPG</span>
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-muted/60 text-muted-foreground border border-border">
+                              <Camera className="size-2.5 text-muted-foreground/60" />
+                              <span>Belum Ada Foto</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
 
@@ -2754,9 +2946,9 @@ export default function UploadTtbTab({
 
                     <td className="py-2.5 px-3">
                       {(() => {
-                        const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                        const cleanTtbKey = item.cleanNoTtb.toUpperCase().trim();
                         const activeToken = remoteTokens[cleanTtbKey];
-                        const isReceived = item.hasPhysicalPhotos || item.isArmadaReceived || activeToken?.isUsed;
+                        const isReceived = item.hasPhotos || item.hasPhysicalPhotos || item.isArmadaReceived || activeToken?.isUsed;
                         const isWaitingCrew = !isReceived && Boolean(activeToken && !activeToken.isUsed);
 
                         // Cek status validasi dari Manajer Procurement & Lini Logistik
@@ -2774,7 +2966,7 @@ export default function UploadTtbTab({
                           <div className="flex flex-col gap-1">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit">
                               <CheckCircle2 className="size-3" />
-                              UPLOADED
+                              TERARSIP ({item.allFiles.length} FILE)
                             </span>
                             {(() => {
                               const insp = inspectionsMap[cleanTtbKey];
@@ -2804,20 +2996,20 @@ export default function UploadTtbTab({
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
-                                  setSelectedMediaItem(item);
-                                  setMediaModalTtb(cleanNo);
+                                  setSelectedMediaItem(item.representativeItem);
+                                  setMediaModalTab('photos');
+                                  setMediaModalTtb(item.cleanNoTtb);
                                 }}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 w-fit hover:bg-emerald-500/25 transition cursor-pointer text-left"
                                 title="Barang telah diterima di kapal. Klik untuk melihat galeri foto & tanda tangan basah."
                               >
                                 <CheckCircle2 className="size-2.5 text-emerald-500 shrink-0" />
-                                <span>Diterima Kapal {item.physicalPhotosCount ? `(${item.physicalPhotosCount} Foto)` : ''}</span>
+                                <span>Diterima Kapal {item.photosCount ? `(${item.photosCount} Foto)` : ''}</span>
                               </button>
                             ) : isWaitingCrew ? (
                               <button
                                 type="button"
-                                onClick={() => setPendingDispatchItem(item)}
+                                onClick={() => setPendingDispatchItem(item.representativeItem)}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 w-fit hover:bg-blue-500/25 transition cursor-pointer text-left"
                                 title="Tautan WA sudah diterbitkan. Klik untuk melihat pesan atau mengirim ulang."
                               >
@@ -2835,7 +3027,7 @@ export default function UploadTtbTab({
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => setPendingDispatchItem(item)}
+                                onClick={() => setPendingDispatchItem(item.representativeItem)}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 w-fit hover:bg-cyan-500/25 transition cursor-pointer text-left"
                                 title="Disahkan Manajer & Siap Antar. Klik untuk menerbitkan tautan dan kirim pesan WhatsApp ke penerima."
                               >
@@ -2853,7 +3045,7 @@ export default function UploadTtbTab({
                         <button
                           type="button"
                           onClick={() => {
-                            const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                            const cleanTtbKey = item.cleanNoTtb.toUpperCase().trim();
                             const valRecord = validationsMap[cleanTtbKey];
                             const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
                             const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
@@ -2865,11 +3057,11 @@ export default function UploadTtbTab({
                               );
                               return;
                             }
-                            setPendingDispatchItem(item);
+                            setPendingDispatchItem(item.representativeItem);
                           }}
                           className={`p-1.5 rounded-lg border transition cursor-pointer shadow-2xs ${
                             (() => {
-                              const cleanTtbKey = (item.cleanNoTtb || item.noTtb || '').toUpperCase().trim();
+                              const cleanTtbKey = item.cleanNoTtb.toUpperCase().trim();
                               const valRecord = validationsMap[cleanTtbKey];
                               const managerApproved = Boolean(valRecord?.ttbSlots?.acknowledgedBy?.isValidated);
                               const isLegallyReady = valRecord?.isReadyForDispatch || managerApproved;
@@ -2882,6 +3074,7 @@ export default function UploadTtbTab({
                         >
                           <MessageCircle className="size-3.5" />
                         </button>
+
                         <button
                           type="button"
                           onClick={() => {
@@ -2895,53 +3088,81 @@ export default function UploadTtbTab({
                         >
                           <Camera className="size-3.5" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setActivePreview(item)}
-                          className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
-                          title="Pratinjau Berkas"
-                        >
-                          <Eye className="size-3.5" />
-                        </button>
+
+                        {/* Tombol Pratinjau Terpadu (Split View / Berdampingan) */}
                         <button
                           type="button"
                           onClick={() => {
-                            const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
-                            const isPdf = item.fileType === 'application/pdf' || String(item.renamedFileName || '').toLowerCase().endsWith('.pdf');
-                            setSelectedMediaItem(item);
-                            setMediaModalTab(isPdf ? 'split' : 'photos');
-                            setMediaModalTtb(cleanNo);
+                            setSelectedMediaItem(item.representativeItem);
+                            setMediaModalTab(item.hasPdf && item.hasPhotos ? 'split' : item.hasPdf ? 'docs' : 'photos');
+                            setMediaModalTtb(item.cleanNoTtb);
                           }}
                           className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                            item.hasPhysicalPhotos || item.isArmadaReceived
-                              ? 'border-blue-500/40 bg-blue-500/15 hover:bg-blue-500/25 text-blue-600 dark:text-blue-400 shadow-sm'
+                            item.hasPdf && item.hasPhotos
+                              ? 'border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 shadow-sm'
                               : 'border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground'
                           }`}
                           title={
-                            item.hasPhysicalPhotos || item.isArmadaReceived
-                              ? `Buka Galeri Foto Fisik Kapal (${item.physicalPhotosCount || 1} Foto)`
+                            item.hasPdf && item.hasPhotos
+                              ? 'Lihat Dokumen Scan PDF & Foto Fisik Berdampingan (Split View)'
+                              : item.hasPdf
+                              ? 'Lihat Dokumen Scan PDF'
+                              : 'Lihat Foto Fisik Logistik'
+                          }
+                        >
+                          <Eye className="size-3.5" />
+                        </button>
+
+                        {/* Tombol Buka Galeri Foto Fisik Logistik */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMediaItem(item.representativeItem);
+                            setMediaModalTab('photos');
+                            setMediaModalTtb(item.cleanNoTtb);
+                          }}
+                          className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                            item.hasPhotos || item.hasPhysicalPhotos || item.isArmadaReceived
+                              ? 'border-purple-500/40 bg-purple-500/15 hover:bg-purple-500/25 text-purple-600 dark:text-purple-400 shadow-sm'
+                              : 'border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground'
+                          }`}
+                          title={
+                            item.hasPhotos || item.hasPhysicalPhotos || item.isArmadaReceived
+                              ? `Buka Galeri Foto Fisik Kapal (${item.photosCount || 1} Foto)`
                               : 'Verifikasi Dokumen Scan & Foto Fisik TTB'
                           }
                         >
                           <Camera className="size-3.5" />
                         </button>
 
-                        <a
-                          href={item.fileUrl.includes('?') ? `${item.fileUrl}&download=true` : `${item.fileUrl}?download=true`}
-                          download={item.renamedFileName}
-                          className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
-                          title="Unduh Berkas"
-                        >
-                          <Download className="size-3.5" />
-                        </a>
+                        {/* Unduh Berkas Utama (Prioritas PDF jika ada, jika tidak Foto) */}
+                        {item.hasPdf && item.pdfItem ? (
+                          <a
+                            href={item.pdfItem.fileUrl.includes('?') ? `${item.pdfItem.fileUrl}&download=true` : `${item.pdfItem.fileUrl}?download=true`}
+                            download={item.pdfItem.renamedFileName}
+                            className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
+                            title={`Unduh Dokumen PDF Resmi (${item.pdfItem.renamedFileName})`}
+                          >
+                            <Download className="size-3.5" />
+                          </a>
+                        ) : item.hasPhotos && item.photoItems[0] ? (
+                          <a
+                            href={item.photoItems[0].fileUrl.includes('?') ? `${item.photoItems[0].fileUrl}&download=true` : `${item.photoItems[0].fileUrl}?download=true`}
+                            download={item.photoItems[0].renamedFileName}
+                            className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition"
+                            title={`Unduh Foto Logistik (${item.photoItems[0].renamedFileName})`}
+                          >
+                            <Download className="size-3.5" />
+                          </a>
+                        ) : null}
 
                         {isAdmin && (
                           <button
                             type="button"
-                            onClick={() => handleDeleteHistoryItem(item)}
+                            onClick={() => handleDeleteConsolidatedItem(item)}
                             disabled={deletingId === item.id}
                             className="p-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition cursor-pointer"
-                            title="Hapus Berkas dari Cloud Storage (Khusus Admin)"
+                            title={`Hapus seluruh berkas TTB ini (${item.allFiles.length} berkas) dari Cloud Storage (Khusus Admin)`}
                           >
                             {deletingId === item.id ? (
                               <RefreshCw className="size-3.5 animate-spin text-red-600" />
@@ -2971,7 +3192,7 @@ export default function UploadTtbTab({
               <strong className="text-foreground">
                 {Math.min(historyPage * historyPageSize, filteredHistory.length)}
               </strong>{' '}
-              dari <strong className="text-foreground">{filteredHistory.length}</strong> data
+              dari <strong className="text-foreground">{filteredHistory.length}</strong> nomor TTB terkonsolidasi (Total {history.length} berkas tersimpan)
             </div>
 
             <div className="flex items-center gap-1.5">
