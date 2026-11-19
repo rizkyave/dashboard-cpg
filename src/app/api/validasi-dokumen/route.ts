@@ -561,6 +561,32 @@ export async function GET(req: NextRequest) {
           hasNewDrafts = true;
         }
 
+        // Perbaikan otomatis: Pastikan berkas dokumen validasi TTB merujuk ke berkas scan PDF resmi, bukan foto JPG
+        const isCurrentPdf =
+          String(rec.renamedFileName || '').toLowerCase().endsWith('.pdf') ||
+          String(rec.r2Key || '').toLowerCase().endsWith('.pdf') ||
+          String(rec.r2Key || '').toLowerCase().startsWith('ttb-documents/');
+
+        const matchedPdf = ttbItems.find((t) => {
+          const isMatch = matchTtbDoc(t.noTtb || t.cleanNoTtb || '', rec.cleanDocNumber || rec.docNumber);
+          const isPdf =
+            String(t.renamedFileName || '').toLowerCase().endsWith('.pdf') ||
+            t.fileType === 'application/pdf' ||
+            String(t.r2Key || '').toLowerCase().endsWith('.pdf') ||
+            String(t.r2Key || '').toLowerCase().startsWith('ttb-documents/');
+          return isMatch && isPdf;
+        });
+
+        if (matchedPdf && (!isCurrentPdf || rec.renamedFileName !== matchedPdf.renamedFileName)) {
+          rec.renamedFileName = matchedPdf.renamedFileName;
+          rec.originalFileName = matchedPdf.originalFileName;
+          rec.fileUrl = matchedPdf.fileUrl;
+          rec.r2Key = matchedPdf.r2Key;
+          rec.docId = matchedPdf.id;
+          rec.fileExists = true;
+          hasNewDrafts = true;
+        }
+
         // Cek apakah ada riwayat serah terima lapangan atau data stamp TTB
         const matchedSt = serahTerimaItems.find((s) =>
           matchTtbDoc(s.noTtb, rec.cleanDocNumber || rec.docNumber)
@@ -773,29 +799,47 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Sinkronisasi dokumen TTB ke daftar validasi
-    for (const ttb of ttbItems) {
+    // 2. Sinkronisasi dokumen TTB ke daftar validasi (Urutkan PDF terlebih dahulu agar berkas scan PDF resmi menjadi dokumen utama validasi, bukan foto fisik)
+    const sortedTtbItems = [...ttbItems].sort((a, b) => {
+      const aIsPdf = String(a.renamedFileName || '').toLowerCase().endsWith('.pdf') || a.fileType === 'application/pdf';
+      const bIsPdf = String(b.renamedFileName || '').toLowerCase().endsWith('.pdf') || b.fileType === 'application/pdf';
+      if (aIsPdf && !bIsPdf) return -1;
+      if (!aIsPdf && bIsPdf) return 1;
+      return new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime();
+    });
+
+    for (const ttb of sortedTtbItems) {
       const keyId = `TTB_${ttb.id}`;
       const keyNum = `TTB_${ttb.cleanNoTtb || ttb.noTtb}`;
       if (!existingMap.has(keyId) && !existingMap.has(keyNum)) {
-        const isLogistikUploader = Boolean(ttb.uploaderName);
+        // Cari berkas scan PDF resmi untuk nomor TTB ini jika item saat ini adalah foto fisik
+        const isPdf = String(ttb.renamedFileName || '').toLowerCase().endsWith('.pdf') || ttb.fileType === 'application/pdf';
+        const docTtb = isPdf
+          ? ttb
+          : sortedTtbItems.find((t) => {
+              const match = matchTtbDoc(t.cleanNoTtb || t.noTtb, ttb.cleanNoTtb || ttb.noTtb);
+              const tIsPdf = String(t.renamedFileName || '').toLowerCase().endsWith('.pdf') || t.fileType === 'application/pdf';
+              return match && tIsPdf;
+            }) || ttb;
+
+        const isLogistikUploader = Boolean(docTtb.uploaderName);
         const ttbUploaderLookup = findUserSig(
           userSigMap,
-          ttb.uploaderUsername,
-          ttb.uploaderName,
-          ttb.uploaderNik
+          docTtb.uploaderUsername,
+          docTtb.uploaderName,
+          docTtb.uploaderNik
         );
         const ttbUploaderSigUrl = ttbUploaderLookup?.signatureDataUrl;
 
         const matchedSt = serahTerimaItems.find((s) =>
-          matchTtbDoc(s.noTtb, ttb.cleanNoTtb || ttb.noTtb)
+          matchTtbDoc(s.noTtb, docTtb.cleanNoTtb || docTtb.noTtb)
         );
-        const hasRecipientStamp = Boolean(ttb.isRecipientStamped || matchedSt?.penerimaSignature);
-        const recName = ttb.recipientName || matchedSt?.penerima || 'Crew Armada Kapal';
-        const recPhone = ttb.recipientPhone || matchedSt?.kontakPenerima;
+        const hasRecipientStamp = Boolean(docTtb.isRecipientStamped || matchedSt?.penerimaSignature);
+        const recName = docTtb.recipientName || matchedSt?.penerima || 'Crew Armada Kapal';
+        const recPhone = docTtb.recipientPhone || matchedSt?.kontakPenerima;
         const signedTime =
-          ttb.recipientStampedAt || matchedSt?.tanggalSerahTerima || ttb.uploadedAt || new Date().toISOString();
-        const sigUrl = ttb.recipientSignatureDataUrl || matchedSt?.penerimaSignature;
+          docTtb.recipientStampedAt || matchedSt?.tanggalSerahTerima || docTtb.uploadedAt || new Date().toISOString();
+        const sigUrl = docTtb.recipientSignatureDataUrl || matchedSt?.penerimaSignature;
 
         const recipientSig: ValidationSignatureRecord = hasRecipientStamp
           ? {
@@ -812,43 +856,43 @@ export async function GET(req: NextRequest) {
 
         const rel = resolveDocRelation(
           'TTB',
-          ttb.cleanNoTtb || ttb.noTtb,
-          ttb.noFpb,
+          docTtb.cleanNoTtb || docTtb.noTtb,
+          docTtb.noFpb,
           undefined
         );
 
         const draft: DocumentValidationRecord = {
-          id: `val-ttb-${ttb.id}`,
+          id: `val-ttb-${docTtb.id}`,
           docType: 'TTB',
-          docId: ttb.id,
-          docNumber: ttb.noTtb,
-          cleanDocNumber: ttb.cleanNoTtb || ttb.noTtb,
-          armada: ttb.armada && ttb.armada !== '-' ? ttb.armada : rel.armada || '-',
+          docId: docTtb.id,
+          docNumber: docTtb.noTtb,
+          cleanDocNumber: docTtb.cleanNoTtb || docTtb.noTtb,
+          armada: docTtb.armada && docTtb.armada !== '-' ? docTtb.armada : rel.armada || '-',
           poNumber: rel.poNumber || '',
-          fpbNumber: ttb.noFpb || rel.fpbNumber || '',
+          fpbNumber: docTtb.noFpb || rel.fpbNumber || '',
           relatedDocuments: {
             relatedFstbs: rel.relatedFstbs,
             relatedTtbs: rel.relatedTtbs,
             relatedPos: rel.relatedPos,
           },
-          receivedDate: ttb.receivedDate || '',
-          originalFileName: ttb.originalFileName,
-          renamedFileName: ttb.renamedFileName,
-          fileUrl: ttb.fileUrl,
-          r2Key: ttb.r2Key,
-          storageProvider: ttb.storageProvider || 'CLOUDFLARE_R2',
+          receivedDate: docTtb.receivedDate || '',
+          originalFileName: docTtb.originalFileName,
+          renamedFileName: docTtb.renamedFileName,
+          fileUrl: docTtb.fileUrl,
+          r2Key: docTtb.r2Key,
+          storageProvider: docTtb.storageProvider || 'CLOUDFLARE_R2',
           purchasingValidation: {
             isValidated: false,
           },
           logistikValidation: {
             isValidated: isLogistikUploader,
-            validatorName: ttb.uploaderName || undefined,
-            validatorUsername: ttb.uploaderUsername,
-            validatorRole: ttb.uploaderRole || 'staf_ttb',
-            validatorNik: ttb.uploaderNik || ttbUploaderLookup?.nik,
-            validatorJabatan: ttb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
+            validatorName: docTtb.uploaderName || undefined,
+            validatorUsername: docTtb.uploaderUsername,
+            validatorRole: docTtb.uploaderRole || 'staf_ttb',
+            validatorNik: docTtb.uploaderNik || ttbUploaderLookup?.nik,
+            validatorJabatan: docTtb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
             signatureDataUrl: ttbUploaderSigUrl,
-            validatedAt: ttb.stampedAt || ttb.uploadedAt,
+            validatedAt: docTtb.stampedAt || docTtb.uploadedAt,
             notes: isLogistikUploader ? 'Tervalidasi otomatis saat pengunggahan berkas oleh Staf Logistik' : undefined,
             verificationToken: isLogistikUploader
               ? `VAL-LOG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
@@ -867,13 +911,13 @@ export async function GET(req: NextRequest) {
           ttbSlots: {
             deliveredBy: {
               isValidated: isLogistikUploader,
-              validatorName: ttb.uploaderName || undefined,
-              validatorUsername: ttb.uploaderUsername,
-              validatorRole: ttb.uploaderRole || 'staf_ttb',
-              validatorNik: ttb.uploaderNik || ttbUploaderLookup?.nik,
-              validatorJabatan: ttb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
+              validatorName: docTtb.uploaderName || undefined,
+              validatorUsername: docTtb.uploaderUsername,
+              validatorRole: docTtb.uploaderRole || 'staf_ttb',
+              validatorNik: docTtb.uploaderNik || ttbUploaderLookup?.nik,
+              validatorJabatan: docTtb.uploaderJabatan || ttbUploaderLookup?.jabatan || 'Staf Logistik & Pergudangan',
               signatureDataUrl: ttbUploaderSigUrl,
-              validatedAt: ttb.stampedAt || ttb.uploadedAt,
+              validatedAt: docTtb.stampedAt || docTtb.uploadedAt,
             },
             receivedBy: { ...recipientSig },
             approvedBy: { isValidated: false },
@@ -882,8 +926,8 @@ export async function GET(req: NextRequest) {
           overallStatus: hasRecipientStamp ? 'SUDAH_DITERIMA_ARMADA' : 'MENUNGGU_VALIDASI',
           completedLinesCount: 0,
           isReadyForDispatch: false,
-          createdAt: ttb.uploadedAt || new Date().toISOString(),
-          updatedAt: ttb.uploadedAt || new Date().toISOString(),
+          createdAt: docTtb.uploadedAt || new Date().toISOString(),
+          updatedAt: docTtb.uploadedAt || new Date().toISOString(),
         };
 
         const comp = computeValidationStatus(draft);

@@ -38,7 +38,7 @@ import {
   parseTtbList,
 } from '@/utils/timemark';
 import { UploadedTtbItem } from '@/types/ttbUpload';
-import { formatFileSize } from '@/utils/ttbRename';
+import { formatFileSize, sanitizeTtbNumber } from '@/utils/ttbRename';
 
 export interface PhotoItem {
   name: string;
@@ -235,11 +235,54 @@ function TtbMediaModalInner({
       .then((data) => {
         if (cancelled) return;
         const rawItems = Array.isArray(data?.items) ? data.items : [];
-        const validDocs = rawItems.filter(
+
+        // Filter khusus dokumen PDF scan resmi TTB (ekstensi .pdf, MIME application/pdf, atau folder ttb-documents)
+        const pdfDocs = rawItems.filter((d: any) => {
+          if (!d) return false;
+          const name = String(d.renamedFileName || d.originalFileName || '').toLowerCase();
+          const type = String(d.fileType || '').toLowerCase();
+          const key = String(d.r2Key || '').toLowerCase();
+          const isPdf = name.endsWith('.pdf') || type === 'application/pdf' || key.startsWith('ttb-documents/');
+          return isPdf && (d.fileUrl || d.renamedFileName || d.originalFileName);
+        });
+
+        // Kumpulkan juga berkas foto dari upload TTB berpasangan untuk melengkapi galeri foto fisik
+        const photoDocs = rawItems.filter((d: any) => {
+          if (!d) return false;
+          const name = String(d.renamedFileName || d.originalFileName || '').toLowerCase();
+          const type = String(d.fileType || '').toLowerCase();
+          const key = String(d.r2Key || '').toLowerCase();
+          const isPdf = name.endsWith('.pdf') || type === 'application/pdf' || key.startsWith('ttb-documents/');
+          return !isPdf && (d.fileUrl || d.renamedFileName || d.originalFileName);
+        });
+
+        // Utamakan berkas PDF murni; jika sama sekali belum ada berkas PDF, baru fallback ke item lain
+        const validDocs = pdfDocs.length > 0 ? pdfDocs : rawItems.filter(
           (d: any) => d && (d.fileUrl || d.renamedFileName || d.originalFileName)
         );
         setDocuments(validDocs);
         if (data?.error && validDocs.length === 0) setDocsError(data.error);
+
+        // Auto-merge foto berpasangan ke galeri foto jika ada
+        if (photoDocs.length > 0) {
+          setPhotos((prevPhotos) => {
+            const existingUrls = new Set(prevPhotos.map((p) => p.url));
+            const newPhotos: PhotoItem[] = [];
+            for (const p of photoDocs) {
+              const pUrl = p.fileUrl || `/api/upload-ttb/file?name=${encodeURIComponent(p.renamedFileName)}`;
+              if (!existingUrls.has(pUrl)) {
+                newPhotos.push({
+                  name: p.renamedFileName || p.originalFileName || 'Foto-Fisik.jpg',
+                  url: pUrl,
+                  takenAt: p.receivedDate || p.uploadedAt || null,
+                  ttbInfo: { prefix: 'TTB', numbers: [p.cleanNoTtb || p.noTtb] },
+                });
+                existingUrls.add(pUrl);
+              }
+            }
+            return newPhotos.length > 0 ? [...prevPhotos, ...newPhotos] : prevPhotos;
+          });
+        }
       })
       .catch(() => {
         if (!cancelled) setDocsError('Gagal memuat dokumen scan TTB dari Cloud Storage.');
@@ -303,9 +346,20 @@ function TtbMediaModalInner({
   // URL pratinjau dokumen ter-cache-bust agar perubahan stempel/tanda tangan digital selalu termutakhir tanpa terhalang cache
   const docPreviewUrl = useMemo(() => {
     if (!selectedDoc) return '';
-    const key = selectedDoc.r2Key || `ttb-documents/${selectedDoc.renamedFileName || selectedDoc.originalFileName || 'document.pdf'}`;
+    // Pastikan key berkas mengarah ke folder ttb-documents/ untuk dokumen resmi scan (bukan ttb-photos/)
+    let key = selectedDoc.r2Key;
+    if (!key || key.startsWith('ttb-photos/')) {
+      const fileName = selectedDoc.renamedFileName || selectedDoc.originalFileName || '';
+      const isPdfName = fileName.toLowerCase().endsWith('.pdf');
+      const cleanNum = sanitizeTtbNumber(activeTtb);
+      key = isPdfName
+        ? `ttb-documents/${fileName}`
+        : cleanNum
+        ? `ttb-documents/${cleanNum}.pdf`
+        : `ttb-documents/${fileName || 'document.pdf'}`;
+    }
     return `/api/r2-file?key=${encodeURIComponent(key)}&t=${Date.now()}`;
-  }, [selectedDoc]);
+  }, [selectedDoc, activeTtb]);
 
   // Helper formatting metadata foto fisik serah terima
   const photoMeta = useMemo(() => {

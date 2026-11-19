@@ -464,6 +464,16 @@ export async function GET(req: NextRequest) {
 
         return false;
       });
+
+      // Urutkan berkas PDF scan resmi di posisi pertama (items[0]) agar consumer yang mencari berkas TTB
+      // selalu mendapatkan berkas PDF resmi, bukan berkas foto JPG
+      finalItems.sort((a, b) => {
+        const aIsPdf = String(a.renamedFileName || '').toLowerCase().endsWith('.pdf') || a.fileType === 'application/pdf';
+        const bIsPdf = String(b.renamedFileName || '').toLowerCase().endsWith('.pdf') || b.fileType === 'application/pdf';
+        if (aIsPdf && !bIsPdf) return -1;
+        if (!aIsPdf && bIsPdf) return 1;
+        return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
+      });
     }
 
     const systemSettings = await getSystemSettings();

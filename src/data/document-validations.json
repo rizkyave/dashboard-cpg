@@ -1710,7 +1710,7 @@
     },
     "lapanganValidation": {
       "isValidated": false,
-      "notes": "N/A - FSTB hanya mencakup serah terima Purchasing ke Logistik/Gudang."
+      "notes": "N/A - FSTB hanya mencakup Purchasing & Logistik"
     },
     "fstbSlots": {
       "deliveredBy": {
@@ -1799,7 +1799,7 @@
     },
     "lapanganValidation": {
       "isValidated": false,
-      "notes": "N/A - FSTB hanya mencakup serah terima Purchasing ke Logistik/Gudang."
+      "notes": "N/A - FSTB hanya mencakup Purchasing & Logistik"
     },
     "fstbSlots": {
       "deliveredBy": {
@@ -6886,7 +6886,7 @@
   {
     "id": "val-ttb-1794368355236-nd2kg",
     "docType": "TTB",
-    "docId": "1794368355236-nd2kg",
+    "docId": "1794368358751-vc0be",
     "docNumber": "HL-TTB-26-02325",
     "cleanDocNumber": "HL-TTB-26-02325",
     "armada": "SPOB MUARA MAS JAYA",
@@ -6900,9 +6900,9 @@
       "relatedPos": []
     },
     "receivedDate": "2026-11-11",
-    "originalFileName": "HL-TTB-26-02325 (2).jpeg",
-    "renamedFileName": "HL-TTB-26-02325_01.jpeg",
-    "fileUrl": "/api/r2-file?key=ttb-documents%2FHL-TTB-26-02325.pdf",
+    "originalFileName": "HL-TTB-26-02325.pdf",
+    "renamedFileName": "HL-TTB-26-02325.pdf",
+    "fileUrl": "/api/r2-file?key=ttb-documents%2FHL-TTB-26-02325.pdf&v=1794368358751",
     "r2Key": "ttb-documents/HL-TTB-26-02325.pdf",
     "storageProvider": "CLOUDFLARE_R2",
     "purchasingValidation": {
@@ -8201,7 +8201,7 @@
       }
     },
     "overallStatus": "SUDAH_DITERIMA_ARMADA",
-    "completedLinesCount": 3,
+    "completedLinesCount": 4,
     "isReadyForDispatch": true,
     "createdAt": "2026-11-16T02:36:13.499Z",
     "updatedAt": "2026-11-16T03:45:09.329Z",

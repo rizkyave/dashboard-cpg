@@ -317,6 +317,7 @@ export default function UploadTtbTab({
   const [activePreview, setActivePreview] = useState<UploadedTtbItem | null>(null);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false);
   const [mediaModalTtb, setMediaModalTtb] = useState<string | null>(null);
+  const [mediaModalTab, setMediaModalTab] = useState<'split' | 'docs' | 'photos'>('split');
   const [selectedMediaItem, setSelectedMediaItem] = useState<UploadedTtbItem | null>(null);
   const [isIncompleteModalOpen, setIsIncompleteModalOpen] = useState<boolean>(false);
   const [pendingDispatchItem, setPendingDispatchItem] = useState<UploadedTtbItem | null>(null);
@@ -2610,33 +2611,57 @@ export default function UploadTtbTab({
                 paginatedHistory.map((item) => (
                   <tr key={item.id} className="hover:bg-muted/30 transition">
                     <td className="py-2.5 px-3 font-mono font-bold text-foreground">
-                      <div className="flex items-center gap-1.5">
-                        {(() => {
-                          const parsed = parseTtbList(item.noTtb);
-                          if (parsed.length > 1) {
-                            const shown = parsed.slice(0, 3).join(', ');
-                            const remaining = parsed.length - 3;
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {(() => {
+                            const parsed = parseTtbList(item.noTtb);
+                            if (parsed.length > 1) {
+                              const shown = parsed.slice(0, 3).join(', ');
+                              const remaining = parsed.length - 3;
+                              return (
+                                <span title={item.noTtb} className="truncate max-w-[280px] inline-block font-mono">
+                                  {shown}
+                                  {remaining > 0 ? ` (+${remaining} lainnya)` : ''}
+                                </span>
+                              );
+                            }
+                            return <span>{item.noTtb}</span>;
+                          })()}
+
+                          {(() => {
+                            const isPdf = item.fileType === 'application/pdf' || String(item.renamedFileName || '').toLowerCase().endsWith('.pdf');
                             return (
-                              <span title={item.noTtb} className="truncate max-w-[280px] inline-block font-mono">
-                                {shown}
-                                {remaining > 0 ? ` (+${remaining} lainnya)` : ''}
+                              <span
+                                className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold tracking-tight border shrink-0 ${
+                                  isPdf
+                                    ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
+                                    : 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                                }`}
+                                title={item.renamedFileName}
+                              >
+                                {isPdf ? 'PDF Scan' : 'Foto Fisik'}
                               </span>
                             );
-                          }
-                          return <span>{item.noTtb}</span>;
-                        })()}
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(item.noTtb, item.id)}
-                          className="p-1 rounded text-muted-foreground hover:text-foreground transition cursor-pointer"
-                          title="Salin No TTB"
-                        >
-                          {copiedId === item.id ? (
-                            <Check className="size-3 text-emerald-500" />
-                          ) : (
-                            <Copy className="size-3" />
-                          )}
-                        </button>
+                          })()}
+
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(item.noTtb, item.id)}
+                            className="p-1 rounded text-muted-foreground hover:text-foreground transition cursor-pointer"
+                            title="Salin No TTB"
+                          >
+                            {copiedId === item.id ? (
+                              <Check className="size-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="size-3" />
+                            )}
+                          </button>
+                        </div>
+                        {item.renamedFileName && (
+                          <span className="text-[10px] font-mono text-muted-foreground/80 truncate max-w-[240px]" title={item.renamedFileName}>
+                            {item.renamedFileName}
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -2882,7 +2907,9 @@ export default function UploadTtbTab({
                           type="button"
                           onClick={() => {
                             const cleanNo = (item.cleanNoTtb || item.noTtb || '').trim();
+                            const isPdf = item.fileType === 'application/pdf' || String(item.renamedFileName || '').toLowerCase().endsWith('.pdf');
                             setSelectedMediaItem(item);
+                            setMediaModalTab(isPdf ? 'split' : 'photos');
                             setMediaModalTtb(cleanNo);
                           }}
                           className={`p-1.5 rounded-lg border transition cursor-pointer ${
@@ -3535,7 +3562,7 @@ export default function UploadTtbTab({
         po={selectedMediaItem?.noPo}
         armada={selectedMediaItem?.armada}
         item={selectedMediaItem?.keterangan}
-        initialTab="photos"
+        initialTab={mediaModalTab}
         showToast={showToast}
       />
 

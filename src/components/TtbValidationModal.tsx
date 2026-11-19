@@ -603,12 +603,25 @@ export default function TtbValidationModal({
     }
   };
 
-  // URL Dokumen PDF dengan cache-buster saat direfresh
+  // URL Dokumen PDF dengan cache-buster saat direfresh (Proteksi: Jangan sampai foto JPG tampil di viewer dokumen)
   const previewPdfUrl = useMemo(() => {
-    if (!record?.fileUrl) return '';
-    const sep = record.fileUrl.includes('?') ? '&' : '?';
-    return `${record.fileUrl}${sep}t=${pdfRefreshKey}`;
-  }, [record?.fileUrl, pdfRefreshKey]);
+    let rawUrl = record?.fileUrl || '';
+    const cleanNum = (record?.cleanDocNumber || record?.docNumber || '').trim();
+    const isImageFile =
+      !rawUrl.toLowerCase().includes('.pdf') &&
+      (rawUrl.toLowerCase().includes('.jpg') ||
+        rawUrl.toLowerCase().includes('.jpeg') ||
+        rawUrl.toLowerCase().includes('.png') ||
+        rawUrl.toLowerCase().includes('.webp') ||
+        String(record?.renamedFileName || '').toLowerCase().match(/\.(jpe?g|png|webp)$/i) !== null);
+
+    if (isImageFile && cleanNum) {
+      rawUrl = `/api/r2-file?key=ttb-documents%2F${encodeURIComponent(cleanNum)}.pdf`;
+    }
+    if (!rawUrl) return '';
+    const sep = rawUrl.includes('?') ? '&' : '?';
+    return `${rawUrl}${sep}t=${pdfRefreshKey}`;
+  }, [record?.fileUrl, record?.cleanDocNumber, record?.docNumber, record?.renamedFileName, pdfRefreshKey]);
 
   return (
     <div

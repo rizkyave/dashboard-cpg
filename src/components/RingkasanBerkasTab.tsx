@@ -169,10 +169,19 @@ export default function RingkasanBerkasTab({
         setFstbMap(map);
       }
 
-      // 2. Process TTB docs
+      // 2. Process TTB docs (Pastikan berkas PDF resmi selalu diprioritaskan dan tidak tertimpa oleh foto fisik)
       if (ttbRes.status === 'fulfilled' && Array.isArray(ttbRes.value?.items)) {
         const map: Record<string, { noTtb: string; fileUrl: string; armada?: string }> = {};
-        for (const item of ttbRes.value.items) {
+        const sortedItems = [...ttbRes.value.items].sort((a: any, b: any) => {
+          const aPdf = String(a.renamedFileName || '').toLowerCase().endsWith('.pdf') || a.fileType === 'application/pdf';
+          const bPdf = String(b.renamedFileName || '').toLowerCase().endsWith('.pdf') || b.fileType === 'application/pdf';
+          if (!aPdf && bPdf) return -1;
+          if (aPdf && !bPdf) return 1;
+          return 0;
+        });
+
+        for (const item of sortedItems) {
+          const isPdf = String(item.renamedFileName || '').toLowerCase().endsWith('.pdf') || item.fileType === 'application/pdf';
           const no = (item.noTtb || item.originalFileName || '').trim().toLowerCase();
           const cleanNo = (item.cleanNoTtb || '').trim().toLowerCase();
           const fpb = (item.noFpb || '').trim().toLowerCase();
@@ -180,10 +189,18 @@ export default function RingkasanBerkasTab({
           const armada = (item.armada || item.dept || item.namaKapal || '').trim();
           const url = item.fileUrl || `/api/upload-ttb/file?name=${encodeURIComponent(item.renamedFileName)}`;
           const entry = { noTtb: item.noTtb || item.cleanNoTtb || item.originalFileName, fileUrl: url, armada };
-          if (no) map[no] = entry;
-          if (cleanNo) map[cleanNo] = entry;
-          if (fpb) map[fpb] = entry;
-          if (po) map[po] = entry;
+
+          const assignEntry = (key: string) => {
+            if (!key) return;
+            // Jika sudah ada entri berkas PDF, jangan biarkan foto fisik menimpa
+            if (map[key] && !isPdf) return;
+            map[key] = entry;
+          };
+
+          assignEntry(no);
+          assignEntry(cleanNo);
+          assignEntry(fpb);
+          assignEntry(po);
         }
         setTtbMap(map);
       }
