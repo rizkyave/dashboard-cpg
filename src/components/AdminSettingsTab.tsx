@@ -449,6 +449,11 @@ export default function AdminSettingsTab({ showToast }: AdminSettingsTabProps) {
       showToast('Hanya Administrator yang berwenang mengubah matriks hak akses.', 'warning');
       return;
     }
+    const confirmLock = window.confirm(
+      '⚠️ PERINGATAN KRITIKAL:\n\nApakah Anda benar-benar yakin ingin mengatur SELURUH hak akses non-admin menjadi DILARANG secara serentak?\n\nSemua peran staf dan manajemen non-admin akan kehilangan akses ke seluruh modul sistem. Klik OK hanya jika Anda memang bermaksud mengunci sistem.'
+    );
+    if (!confirmLock) return;
+
     const nonAdminRoles: Array<keyof ModulePermissionItem['permissions']> = [
       'manager',
       'supervisor',

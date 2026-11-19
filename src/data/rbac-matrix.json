@@ -11,64 +11,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "visitor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       }
     }
   },
@@ -84,64 +74,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       }
     }
   },
@@ -157,64 +137,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -230,64 +200,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -303,64 +263,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       }
     }
   },
@@ -376,64 +326,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -449,64 +389,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "spv_logistik": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_ttb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -522,64 +452,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -595,64 +515,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Input & Upload",
+        "badgeTone": "emerald"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -668,64 +578,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -741,64 +641,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
+      },
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "end_user": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -814,64 +704,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -887,64 +767,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "end_user": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -960,64 +830,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "end_user": {
+        "allowed": true,
+        "level": "Validasi & TTD",
+        "badgeTone": "emerald"
+      },
+      "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1033,64 +893,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -1106,64 +956,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Update Status",
+        "badgeTone": "sky"
+      },
+      "end_user": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -1179,64 +1019,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "staf_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Upload & Kelola",
+        "badgeTone": "emerald"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "visitor": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       }
     }
   },
@@ -1252,64 +1082,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1325,64 +1145,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Input & Upload",
+        "badgeTone": "emerald"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Input & Upload",
+        "badgeTone": "emerald"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Input & Upload",
+        "badgeTone": "emerald"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1398,64 +1208,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Update Status",
+        "badgeTone": "sky"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1471,64 +1271,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "View & Verifikasi",
+        "badgeTone": "blue"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1544,64 +1334,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Update Status",
+        "badgeTone": "sky"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1617,64 +1397,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Update Status",
+        "badgeTone": "sky"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -1690,64 +1460,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_fpb": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_lapangan": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "spv_logistik": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1763,64 +1523,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_ttb": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "staf_lapangan": {
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
+      },
+      "end_user": {
+        "allowed": true,
+        "level": "Input & Upload",
+        "badgeTone": "emerald"
+      },
+      "visitor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       }
     }
   },
@@ -1836,64 +1586,54 @@
         "badgeTone": "purple"
       },
       "manager": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
       "supervisor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "allowed": true,
+        "level": "Full Access",
+        "badgeTone": "purple"
       },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_purchasing": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+      "spv_logistik": {
+        "allowed": true,
+        "level": "Read-only",
+        "badgeTone": "slate"
       },
       "staf_fpb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_purchasing": {
+      "staf_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
-      "spv_logistik": {
+      "staf_ttb": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   },
@@ -1911,62 +1651,52 @@
       "manager": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "supervisor": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_purchasing": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_ttb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_lapangan": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "end_user": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "visitor": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
-      },
-      "staf_fpb": {
-        "allowed": false,
-        "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "spv_purchasing": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
       },
       "spv_logistik": {
         "allowed": false,
         "level": "Dilarang",
-        "badgeTone": "rose",
-        "notes": "Akses dinonaktifkan (default: dilarang)"
+        "badgeTone": "rose"
+      },
+      "staf_fpb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_purchasing": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_ttb": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "staf_lapangan": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "end_user": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
+      },
+      "visitor": {
+        "allowed": false,
+        "level": "Dilarang",
+        "badgeTone": "rose"
       }
     }
   }

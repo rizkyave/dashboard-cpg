@@ -63,6 +63,20 @@ async function getStoredRbacMatrix(): Promise<ModulePermissionItem[]> {
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const merged = ensureAllModulesPresent(parsed);
+          // Cek apakah data dari R2 terdeteksi anomali total (0 role non-admin diizinkan)
+          const nonAdminCount = merged.reduce((acc, m) => {
+            return (
+              acc +
+              Object.entries(m.permissions).filter(([r, p]) => r !== 'admin' && p && (p as any).allowed).length
+            );
+          }, 0);
+
+          if (nonAdminCount === 0) {
+            console.warn('RBAC Matrix di R2 terdeteksi anomali terkunci total. Memulihkan ke default sistem.');
+            await saveStoredRbacMatrix(MODULE_PERMISSIONS_MATRIX);
+            return MODULE_PERMISSIONS_MATRIX;
+          }
+
           if (merged.length !== parsed.length) {
             saveStoredRbacMatrix(merged).catch(() => {});
           }
@@ -79,7 +93,20 @@ async function getStoredRbacMatrix(): Promise<ModulePermissionItem[]> {
     const raw = await fs.readFile(LOCAL_RBAC_FILE_PATH, 'utf8');
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return ensureAllModulesPresent(parsed);
+      const merged = ensureAllModulesPresent(parsed);
+      const nonAdminCount = merged.reduce((acc, m) => {
+        return (
+          acc +
+          Object.entries(m.permissions).filter(([r, p]) => r !== 'admin' && p && (p as any).allowed).length
+        );
+      }, 0);
+
+      if (nonAdminCount === 0) {
+        console.warn('RBAC Matrix lokal terdeteksi anomali terkunci total. Memulihkan ke default sistem.');
+        await saveStoredRbacMatrix(MODULE_PERMISSIONS_MATRIX);
+        return MODULE_PERMISSIONS_MATRIX;
+      }
+      return merged;
     }
   } catch {
     // Non-fatal

@@ -124,7 +124,7 @@ export interface ModulePermissionItem {
 
 export const MODULE_PERMISSIONS_MATRIX: ModulePermissionItem[] = rawRbacMatrix as unknown as ModulePermissionItem[];
 
-export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V13';
+export const RBAC_MATRIX_STORAGE_KEY = 'CPG_AUTH_RBAC_MATRIX_V14';
 
 /**
  * Membaca matriks perizinan dinamis dari localStorage (fallback ke default matrix)
@@ -147,6 +147,7 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V10');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V11');
     localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V12');
+    localStorage.removeItem('CPG_AUTH_RBAC_MATRIX_V13');
 
     const raw = localStorage.getItem(RBAC_MATRIX_STORAGE_KEY);
     if (raw) {
@@ -172,6 +173,22 @@ export function getStoredPermissionsMatrix(): ModulePermissionItem[] {
           }
           return sysItem;
         });
+
+        // Guardrail Keamanan: Jika data tersimpan terdeteksi anomali/korup (semua non-admin terkunci dilarang),
+        // otomatis pulihkan ke default sistem
+        const nonAdminAllowedCount = merged.reduce((acc, m) => {
+          return (
+            acc +
+            Object.entries(m.permissions).filter(([r, p]) => r !== 'admin' && p && (p as any).allowed).length
+          );
+        }, 0);
+
+        if (nonAdminAllowedCount === 0) {
+          console.warn('RBAC Matrix cache terdeteksi anomali (seluruh non-admin dilarang). Mengembalikan ke default sistem.');
+          localStorage.removeItem(RBAC_MATRIX_STORAGE_KEY);
+          return MODULE_PERMISSIONS_MATRIX;
+        }
+
         return merged;
       }
     }
@@ -285,26 +302,24 @@ export function canAccessTab(role: UserRole | undefined, tab: TabType): boolean 
   // Modul Regulasi & SOP dapat dibaca oleh seluruh tingkatan peran karyawan CPG
   if (tab === 'regulasi-sop') return true;
 
-  // 1. Cek perizinan dinamis dari matriks yang dikonfigurasi & disimpan oleh Admin
-  if (typeof window !== 'undefined') {
-    try {
-      const matrix = getStoredPermissionsMatrix();
-      let moduleItem = matrix.find((m) => m.tabId === tab);
-      if (!moduleItem && (tab === 'validasi-fstb' || tab === 'validasi-ttb')) {
-        moduleItem = matrix.find((m) => m.tabId === 'validasi-dokumen');
-      }
-      if (moduleItem && role in moduleItem.permissions) {
-        const rule = (moduleItem.permissions as any)[role] as RolePermissionRule | undefined;
-        if (rule) {
-          return rule.allowed;
-        }
-      }
-    } catch {
-      // Fallback ke logika statis bila terjadi kendala
+  // 1. Cek perizinan dinamis dari matriks yang dikonfigurasi & disimpan oleh Admin (fallback ke default matriks sistem)
+  try {
+    const matrix = getStoredPermissionsMatrix();
+    let moduleItem = matrix.find((m) => m.tabId === tab);
+    if (!moduleItem && (tab === 'validasi-fstb' || tab === 'validasi-ttb')) {
+      moduleItem = matrix.find((m) => m.tabId === 'validasi-dokumen');
     }
+    if (moduleItem && role in moduleItem.permissions) {
+      const rule = (moduleItem.permissions as any)[role] as RolePermissionRule | undefined;
+      if (rule) {
+        return rule.allowed;
+      }
+    }
+  } catch {
+    // Fallback bila terjadi kendala pembacaan
   }
 
-  // 2. Default sistem saat ini: Seluruh akses dilarang untuk semua role (kecuali admin)
+  // 2. Default bila tab tidak terdaftar
   return false;
 }
 
