@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentasi Manajemen: Dashboard Pengadaan & Logistik CPG</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-dark: #1e293b;
+      --card-border: #334155;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-light: #38bdf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #ef4444;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #020617;
+      color: var(--text-light);
+      overflow-x: hidden;
+    }
+    .slide-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      gap: 32px;
+    }
+    .slide {
+      width: 100%;
+      max-width: 1140px;
+      aspect-ratio: 16 / 9;
+      background: var(--bg-dark);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 40px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      page-break-after: always;
+      break-after: page;
+    }
+    .slide-header {
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+    }
+    .slide-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 4px;
+    }
+    .slide-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-light);
+      line-height: 1.25;
+    }
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(51, 65, 85, 0.4);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-dark);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .badge-primary { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border: 1px solid rgba(37, 99, 235, 0.4); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-rose { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .metric-big {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--primary-light);
+      line-height: 1;
+      margin: 12px 0 6px 0;
+    }
+    .nav-bar {
+      position: fixed;
+      top: 16px;
+      right: 24px;
+      z-index: 999;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover {
+      background: #1d4ed8;
+    }
+    @media print {
+      body {
+        background: #000;
+      }
+      .nav-bar {
+        display: none !important;
+      }
+      .slide-container {
+        padding: 0 !important;
+        gap: 0 !important;
+      }
+      .slide {
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        aspect-ratio: auto !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      @page {
+        size: landscape;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print & Nav Control -->
+  <div class="nav-bar">
+    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Presentasi Manajemen CPG</span>
+    <button class="btn" onclick="window.print()">🖨️ Cetak ke PDF</button>
+  </div>
+
+  <div class="slide-container">
+
+    <!-- SLIDE 1 -->
+    <div class="slide" id="slide-1">
+      <div>
+        <span class="badge badge-primary">EVALUASI MANAJEMEN • 1 BULAN PASCA DEPLOYMENT</span>
+        <h1 style="font-size: 38px; font-weight: 900; line-height: 1.2; margin-top: 12px; color: #fff;">
+          Transformasi Digital Pengadaan,<br>Logistik & Armada Terintegrasi CPG
+        </h1>
+        <p style="font-size: 16px; color: var(--text-muted); margin-top: 14px; max-width: 800px; line-height: 1.5;">
+          Standarisasi Alur Operasional Hulu-ke-Hilir, Rantai Komando Pengambilan Keputusan, dan Analisa Tata Kelola Multi-Entitas (CPL, PPI, HL, GAJ, MIL, SP, SSK, MO).
+        </p>
+      </div>
+
+      <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.7);">
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Disiapkan Oleh</span>
+          <span style="font-size: 14px; font-weight: 700; color: var(--primary-light);">Tim Proyek Pengadaan & Digitalisasi CPG</span>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Target Audiens</span>
+          <span style="font-size: 14px; font-weight: 700; color: #fff;">Dewan Direksi & Manajemen Eksekutif</span>
+        </div>
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Periode Evaluasi</span>
+          <span style="font-size: 14px; font-weight: 700; color: #fff;">Februari 2026 (Bulan ke-1 Operasional)</span>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Capital Power Group • Integrated Maritime Logistics Dashboard</span>
+        <span>Slide 1 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" id="slide-2">
+      <div class="slide-header">
+        <div class="slide-category">Tantangan Operasional Masa Lalu</div>
+        <div class="slide-title">Mengapa Digitalisasi & Standarisasi Mutlak Diperlukan?</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <span class="badge badge-rose">TANTANGAN 1</span>
+            <div class="card-title">Pemisahan Data & Dokumen Tercecer</div>
+            <div class="card-desc">
+              Permintaan barang dari armada kapal tersebar di chat WhatsApp pribadi dan formulir kertas. Riwayat PO, TTB, dan invoice tersimpan terpisah di folder komputer masing-masing staf tanpa integrasi pusat.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-rose">TANTANGAN 2</span>
+            <div class="card-title">Tingginya Risiko Pembelian Ganda</div>
+            <div class="card-desc">
+              Ketiadaan sistem deteksi otomatis menyebabkan barang serupa sering dipesan dan dibeli berulang kali dalam kurun waktu kurang dari 30 hari oleh kru kapal yang berbeda.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-rose">TANTANGAN 3</span>
+            <div class="card-title">Stok Gudang Tidak Termonitor Real-Time</div>
+            <div class="card-desc">
+              Barang yang sebetulnya tersedia di Gudang Somber dan Gudang Kariangau tidak termanfaatkan optimal, dan langsung diterbitkan Purchase Order (PO) pembelian baru ke vendor luar.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-rose">TANTANGAN 4</span>
+            <div class="card-title">Batas Penawaran Tidak Terstandarisasi</div>
+            <div class="card-desc">
+              Permintaan penawaran harga (RFQ) ke rekanan vendor tidak memiliki jam penutupan yang mengikat, membuka celah keterlambatan seleksi dan komparasi harga yang kurang adil.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Evaluasi 1 Bulan Pasca Deployment • Solusi Terpadu CPG</span>
+        <span>Slide 2 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide" id="slide-3">
+      <div class="slide-header">
+        <div class="slide-category">Arsitektur Solusi Terpadu</div>
+        <div class="slide-title">6 Pilar Platform Terintegrasi CPG</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card">
+            <span class="badge badge-primary">PILAR 01</span>
+            <div class="card-title">Review & Analisa FPB</div>
+            <div class="card-desc">Validasi keabsahan dokumen e-FPB, cek stok gudang, perhitungan otomatis prioritas SLA (P1/P2/P3), dan deteksi duplikasi.</div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">PILAR 02</span>
+            <div class="card-title">Purchase Planning (PP)</div>
+            <div class="card-desc">Disiplin cut-off mingguan setiap Jumat pk 10:00 WITA, registrasi no. agenda TKB, dan ekspor lembar kerja 3-Tab resmi.</div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">PILAR 03</span>
+            <div class="card-title">Tender & Penerbitan PO</div>
+            <div class="card-desc">Komparasi minimal 3 vendor, penetapan batas penawaran tegas (Hari/Tanggal/Jam), dan tracking PO terhubung.</div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">PILAR 04</span>
+            <div class="card-title">Logistik & TTB Gudang</div>
+            <div class="card-desc">Manajemen persediaan Gudang Somber & Kariangau, registrasi Tanda Terima Barang (TTB) wajib foto fisik barang.</div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">PILAR 05</span>
+            <div class="card-title">Operasional Awak & Armada</div>
+            <div class="card-desc">Master data kapal tunda & tongkang, sinkronisasi posisi labuh/sandar kapal, dan direktori kontak WhatsApp resmi kru.</div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">PILAR 06</span>
+            <div class="card-title">RBAC & Audit Trail</div>
+            <div class="card-desc">Hak akses 8 level jabatan, cross-link silsilah dokumen 4-tier (FPB-PO-TTB-FSTB), dan kontrol penghapusan berkas khusus Admin.</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Arsitektur Sistem • Single Source of Truth</span>
+        <span>Slide 3 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide" id="slide-4">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 1: Review & Analisa FPB</div>
+        <div class="slide-title">Skrining Ketat di Gerbang Permintaan Barang</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card" style="gap: 12px;">
+            <div class="card-title" style="color: var(--primary-light);">3 Filter Pengendalian Biaya:</div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">1. Verifikasi Tanda Tangan e-FPB</strong>
+              <p class="card-desc" style="margin-top: 2px;">Memeriksa tanda tangan berjenjang (Pembuat, Reviewer, Approver) secara otomatis.</p>
+            </div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">2. Deteksi Permintaan Berulang (Duplicate Alert)</strong>
+              <p class="card-desc" style="margin-top: 2px;">Sistem memindai 30 hari histori pengajuan armada terkait dan memberikan alert kuning.</p>
+            </div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">3. Kebijakan Stock-First (Utamakan Stok Gudang)</strong>
+              <p class="card-desc" style="margin-top: 2px;">Mencocokkan nama dan kode barang dengan stok Gudang Somber & Kariangau sebelum beli baru.</p>
+            </div>
+          </div>
+
+          <div class="card" style="gap: 8px;">
+            <div class="card-title" style="color: var(--primary-light);">Kategori Status Keputusan:</div>
+            <div style="background: var(--bg-dark); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--emerald); font-weight: 700; font-size: 11px;">APPROVED PO</span>
+              <p class="card-desc" style="font-size: 11px;">Disetujui masuk antrean Purchase Planning mingguan.</p>
+            </div>
+            <div style="background: var(--bg-dark); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--primary-light); font-weight: 700; font-size: 11px;">FULFILL STOCK</span>
+              <p class="card-desc" style="font-size: 11px;">Dipenuhi langsung dari stok Gudang Logistik Somber/Kariangau.</p>
+            </div>
+            <div style="background: var(--bg-dark); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--amber); font-weight: 700; font-size: 11px;">NEED CLARIFICATION</span>
+              <p class="card-desc" style="font-size: 11px;">Perlu konfirmasi spesifikasi ke kru kapal via WhatsApp.</p>
+            </div>
+            <div style="background: var(--bg-dark); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--rose); font-weight: 700; font-size: 11px;">CANCELLED / VOID (ADMIN)</span>
+              <p class="card-desc" style="font-size: 11px;">Dibatalkan khusus oleh Admin akibat salah administrasi dengan catatan audit.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Pengendalian Pengeluaran Hulu • Tata Kelola FPB</span>
+        <span>Slide 4 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide" id="slide-5">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 2: Standarisasi SLA Pengadaan</div>
+        <div class="slide-title">Klasifikasi Prioritas: P1 (1-2 Hari), P2 (3-14 Hari), P3 (14-30 Hari)</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card" style="border-top: 4px solid var(--rose);">
+            <span class="badge badge-rose">P1 - UTAMA</span>
+            <div class="metric-big" style="color: var(--rose);">1–2</div>
+            <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px;">Hari Kerja (Emergency)</div>
+            <div class="card-desc">
+              Kebutuhan mendesak kapal berlayar/sandar yang berpotensi menimbulkan off-hire armada atau bahaya keselamatan kerja. Otomatis aktif saat urgensi dipilih URGENT atau EMERGENCY.
+            </div>
+          </div>
+          <div class="card" style="border-top: 4px solid var(--amber);">
+            <span class="badge badge-amber">P2 - MENENGAH</span>
+            <div class="metric-big" style="color: var(--amber);">3–14</div>
+            <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px;">Hari Kerja (Perawatan Rutin)</div>
+            <div class="card-desc">
+              Kebutuhan pemeliharaan preventif berkala mesin, suku cadang standar operasional kapal, dan perlengkapan kerja dek armada.
+            </div>
+          </div>
+          <div class="card" style="border-top: 4px solid var(--primary-light);">
+            <span class="badge badge-primary">P3 - STANDAR</span>
+            <div class="metric-big" style="color: var(--primary-light);">14–30</div>
+            <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px;">Hari Kerja (Stok Buffer)</div>
+            <div class="card-desc">
+              Kebutuhan konsumsi umum, persediaan penyangga (buffer stock) gudang logistik, dan perlengkapan non-mendesak dengan waktu tunggu wajar.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Pengawasan SLA & Target Waktu • Anti Keterlambatan</span>
+        <span>Slide 5 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide" id="slide-6">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 3: Purchase Planning & Siklus Mingguan</div>
+        <div class="slide-title">Disiplin Batas Waktu: Cut-Off Setiap Jumat pk 10:00 WITA</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card" style="gap: 12px;">
+            <div class="badge badge-amber" style="align-self: flex-start;">ATURAN CUT-OFF RESMI</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--amber);">Jumat, Pukul 10:00 WITA</div>
+            <p class="card-desc" style="font-size: 13px; line-height: 1.6;">
+              Seluruh FPB yang disetujui sebelum cut-off dikonsolidasikan ke dalam Batch Pengadaan Mingguan (Batch I, II, III).
+            </p>
+            <div class="card-desc" style="background: var(--bg-dark); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <strong style="color: #fff;">Keuntungan Bisnis:</strong><br>
+              • Menghentikan pembelian eceran berulang yang memboroskan ongkos kirim.<br>
+              • Meningkatkan daya tawar diskon volume (bulk purchase) ke vendor.<br>
+              • Ekspor lembar kerja resmi 3-Tab CPG untuk proses tawar vendor.
+            </div>
+          </div>
+
+          <div class="card" style="gap: 10px;">
+            <div class="card-title" style="color: var(--primary-light);">Pemisahan Disposisi Dokumen:</div>
+            <div style="background: var(--bg-dark); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--emerald); font-weight: 700; font-size: 11px;">DOKUMEN REGULER</span>
+              <p class="card-desc" style="font-size: 11px; margin-top: 2px;">FPB yang terbit dan disetujui dalam siklus minggu berjalan.</p>
+            </div>
+            <div style="background: var(--bg-dark); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--amber); font-weight: 700; font-size: 11px;">DOKUMEN SUSULAN (LATE ENTRY)</span>
+              <p class="card-desc" style="font-size: 11px; margin-top: 2px;">FPB periode lalu yang baru masuk. Diberi badge susulan agar KPI tim tidak terdistorsi.</p>
+            </div>
+            <div style="background: var(--bg-dark); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="color: var(--primary-light); font-weight: 700; font-size: 11px;">DOKUMEN CARRY-OVER (BACKLOG)</span>
+              <p class="card-desc" style="font-size: 11px; margin-top: 2px;">FPB periode lalu yang belum tuntas saat Clean Sheet. Dialihkan resmi ke siklus aktif.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Manajemen Batch Mingguan • Purchase Planning CPG</span>
+        <span>Slide 6 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide" id="slide-7">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 4: Sourcing, Tender & Batas Penawaran</div>
+        <div class="slide-title">Transparansi Pemilihan Vendor: Hari, Tanggal, dan Jam Penutupan</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <span class="badge badge-primary">KEBIJAKAN 1</span>
+            <div class="card-title">Komparasi Minimal 3 Vendor</div>
+            <div class="card-desc">
+              Setiap pengadaan barang non-stok wajib melibatkan sekurang-kurangnya 3 rekanan vendor untuk menjamin kewajaran harga pasar dan transparansi audit.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">KEBIJAKAN 2</span>
+            <div class="card-title">Penetapan Batas Penawaran Tegas</div>
+            <div class="card-desc">
+              Surat penawaran harga (RFQ) memuat batas waktu penutupan tegas: Hari, Tanggal, dan Jam (misal: "Jumat, 20 Februari 2026 pk 17:00 WITA") untuk mencegah keterlambatan.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">KEBIJAKAN 3</span>
+            <div class="card-title">Histori Harga & Benchmarking</div>
+            <div class="card-desc">
+              Sistem mencatat rekam jejak harga barang pada pembelian sebelumnya, menjadi modal negosiasi kuat bagi tim purchasing untuk menekan biaya.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">KEBIJAKAN 4</span>
+            <div class="card-title">Penerbitan PO Otomatis Terkoneksi</div>
+            <div class="card-desc">
+              Pemenang tender langsung diterbitkan nomor Purchase Order (PO) resmi yang terhubung secara otomatis ke nomor FPB induknya.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Pengadaan Adil & Kompetitif • Closing Time Enforcement</span>
+        <span>Slide 7 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide" id="slide-8">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 5: Logistik, TTB & Penerimaan Barang</div>
+        <div class="slide-title">Validasi Hilir: Penerimaan Barang & Distribusi ke Kapal</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-4">
+          <div class="card" style="border-top: 3px solid var(--primary-light);">
+            <span class="badge badge-primary">LANGKAH 1</span>
+            <div class="card-title" style="font-size: 13px;">Barang Tiba di Hub</div>
+            <div class="card-desc" style="font-size: 11px;">
+              Vendor mengirim pesanan ke Gudang Somber, Gudang Kariangau, atau langsung ke dermaga kapal di Balikpapan/Samarinda.
+            </div>
+          </div>
+          <div class="card" style="border-top: 3px solid var(--emerald);">
+            <span class="badge badge-emerald">LANGKAH 2</span>
+            <div class="card-title" style="font-size: 13px;">Pemeriksaan & TTB</div>
+            <div class="card-desc" style="font-size: 11px;">
+              Staf logistik memeriksa kuantitas barang, menerbitkan TTB resmi lengkap dengan foto fisik barang dan surat jalan vendor.
+            </div>
+          </div>
+          <div class="card" style="border-top: 3px solid var(--amber);">
+            <span class="badge badge-amber">LANGKAH 3</span>
+            <div class="card-title" style="font-size: 13px;">Penerbitan FSTB</div>
+            <div class="card-desc" style="font-size: 11px;">
+              Formulir Serah Terima Barang (FSTB) diterbitkan saat barang siap diangkut ke kapal tunda atau tongkang.
+            </div>
+          </div>
+          <div class="card" style="border-top: 3px solid var(--emerald);">
+            <span class="badge badge-emerald">LANGKAH 4</span>
+            <div class="card-title" style="font-size: 13px;">Verifikasi Kru Kapal</div>
+            <div class="card-desc" style="font-size: 11px;">
+              Nahkoda/KKM menandatangani FSTB fisik/digital. Bukti di-upload ke dashboard dan transaksi resmi dinyatakan tuntas.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Akuntabilitas Penerimaan Barang • Anti Barang Tercecer</span>
+        <span>Slide 8 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 -->
+    <div class="slide" id="slide-9">
+      <div class="slide-header">
+        <div class="slide-category">Pilar 6: Sinkronisasi Armada & Awak Kapal</div>
+        <div class="slide-title">Konektivitas Darat-ke-Laut: Posisi Kapal & Kru Maritim</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <span class="badge badge-primary">FITUR 1</span>
+            <div class="card-title">Master Data Seluruh Armada Kapal</div>
+            <div class="card-desc">
+              Mencakup seluruh kapal tunda (*tugboat*) dan tongkang (*barge*) dari 8 entitas: CPL, PPI, HL, GAJ, MIL, SP, SSK, dan MO dalam satu database terpadu.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">FITUR 2</span>
+            <div class="card-title">Monitoring Posisi Kapal (Pos-Kapal)</div>
+            <div class="card-desc">
+              Menampilkan status kapal (sandar, labuh, perbaikan) agar tim logistik dapat menjadwalkan titik serah terima barang secara akurat di perairan Balikpapan / Samarinda.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">FITUR 3</span>
+            <div class="card-title">Direktori Kontak WhatsApp Kru Kapal</div>
+            <div class="card-desc">
+              Kontak resmi nahkoda, KKM, dan mualim terdata rapi. Staf reviewer dapat langsung mengirim pesan klarifikasi e-FPB dengan 1-klik tautan WhatsApp otomatis.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">FITUR 4</span>
+            <div class="card-title">Sertifikasi & Tanda Tangan Digital</div>
+            <div class="card-desc">
+              Otentikasi sertifikat digital penandatangan untuk menjamin setiap permintaan kebutuhan barang diajukan oleh personil berwenang di atas kapal.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Sinergi Operasional Darat & Laut • Integrasi Maritim</span>
+        <span>Slide 9 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 -->
+    <div class="slide" id="slide-10">
+      <div class="slide-header">
+        <div class="slide-category">Tata Kelola Kontrol & Kepatuhan Internal</div>
+        <div class="slide-title">Role-Based Access Control (RBAC) & Audit Trail</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card" style="gap: 8px;">
+            <div class="card-title" style="color: var(--primary-light);">Tingkatan Otorisasi Pengguna (RBAC):</div>
+            <div class="card-desc">• <strong>Direksi:</strong> Akses penuh dashboard eksekutif & otorisasi belanja nilai tinggi.</div>
+            <div class="card-desc">• <strong>Manager:</strong> Final approval Purchase Order (PO) & evaluasi rekanan vendor.</div>
+            <div class="card-desc">• <strong>Spv Purchasing:</strong> Validasi batch purchase planning & komparasi 3 vendor.</div>
+            <div class="card-desc">• <strong>Spv Logistik:</strong> Approval logistik e-FPB & kontrol persediaan gudang.</div>
+            <div class="card-desc">• <strong>Staf Buyer & Reviewer:</strong> Eksekusi review barang, RFQ, dan draft PO.</div>
+            <div class="card-desc">• <strong>Staf Gudang:</strong> Pemeriksaan fisik barang, upload foto TTB & FSTB.</div>
+            <div class="card-desc">• <strong>Administrator:</strong> Kelola akun, master data, dan audit trail pembatalan data.</div>
+          </div>
+
+          <div class="card" style="gap: 12px;">
+            <div class="card-title" style="color: var(--primary-light);">Kontrol Keamanan & Traceability:</div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">1. Traceability 4-Tier:</strong>
+              <p class="card-desc">Relasi otomatis FPB ↔ PO ↔ FSTB ↔ TTB. Manajemen dapat menelusuri silsilah pengadaan secara menyeluruh dalam hitungan detik.</p>
+            </div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">2. Fitur Hapus/Batalkan Khusus Admin:</strong>
+              <p class="card-desc">Jika terjadi salah input nomor dari kru kapal, Admin dapat membatalkan (Void) atau menghapus permanen dengan alasan wajib untuk audit trail.</p>
+            </div>
+            <div>
+              <strong style="color: #fff; font-size: 13px;">3. Safeguard Validasi Transaksi:</strong>
+              <p class="card-desc">FPB yang telah memiliki relasi transaksi aktif (PO/TTB) diproteksi agar tidak dapat dihapus tanpa konfirmasi paksa (*Force Override*).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Kepatuhan Standar Perusahaan • Anti Manipulasi Data</span>
+        <span>Slide 10 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 -->
+    <div class="slide" id="slide-11">
+      <div class="slide-header">
+        <div class="slide-category">Struktur Organisasi & Tata Kelola</div>
+        <div class="slide-title">Rantai Komando Pengambilan Keputusan Pengadaan</div>
+      </div>
+      <div class="slide-body">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="card" style="flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 20px; border-left: 5px solid var(--rose);">
+            <div>
+              <span class="badge badge-rose" style="margin-bottom: 4px;">TINGKAT DIREKSI</span>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Direktur Utama / Direksi Operasional</div>
+            </div>
+            <div class="card-desc" style="max-width: 600px;">
+              Menetapkan kebijakan umum pengadaan, pagu anggaran Capex, pengawasan KPI, dan otorisasi transaksi nilai tinggi.
+            </div>
+          </div>
+
+          <div class="card" style="flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 20px; border-left: 5px solid var(--amber);">
+            <div>
+              <span class="badge badge-amber" style="margin-bottom: 4px;">TINGKAT MANAJEMEN</span>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Procurement & Supply Chain Manager</div>
+            </div>
+            <div class="card-desc" style="max-width: 600px;">
+              Persetujuan akhir Purchase Order (PO), penetapan mitra vendor strategis, dan pengawasan efisiensi anggaran belanja.
+            </div>
+          </div>
+
+          <div class="card" style="flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 20px; border-left: 5px solid var(--primary-light);">
+            <div>
+              <span class="badge badge-primary" style="margin-bottom: 4px;">TINGKAT SUPERVISOR</span>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Supervisor Purchasing & Supervisor Logistik</div>
+            </div>
+            <div class="card-desc" style="max-width: 600px;">
+              Validasi batch purchase planning, pengawasan komparasi 3 vendor, approval logistik e-FPB, dan kontrol stok Somber/Kariangau.
+            </div>
+          </div>
+
+          <div class="card" style="flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 20px; border-left: 5px solid var(--emerald);">
+            <div>
+              <span class="badge badge-emerald" style="margin-bottom: 4px;">TINGKAT PELAKSANA</span>
+              <div style="font-size: 14px; font-weight: 700; color: #fff;">Staf Reviewer, Buyer, Staf Gudang & Lapangan</div>
+            </div>
+            <div class="card-desc" style="max-width: 600px;">
+              Eksekusi analisa kebutuhan barang, negosiasi harga, penerbitan draft PO, penerimaan fisik TTB, dan serah terima FSTB ke kapal.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Rantai Komando Jelas • Akuntabilitas Berjenjang</span>
+        <span>Slide 11 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 -->
+    <div class="slide" id="slide-12">
+      <div class="slide-header">
+        <div class="slide-category">Key Performance Indicators</div>
+        <div class="slide-title">Capaian Nyata & Dampak Operasional (1 Bulan Pasca Deployment)</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-4">
+          <div class="card" style="text-align: center;">
+            <div class="metric-big">65%</div>
+            <div class="card-title">Efisiensi Waktu Review</div>
+            <div class="card-desc">Waktu analisa pengajuan FPB terpangkas berkat ekstraksi item otomatis dan verifikasi tanda tangan digital.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div class="metric-big" style="color: var(--emerald);">0</div>
+            <div class="card-title">Berkas Fisik Hilang</div>
+            <div class="card-desc">100% dokumen e-FPB, PO, dan foto fisik TTB tersimpan permanen di cloud storage dengan cadangan berkala.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div class="metric-big" style="color: var(--amber);">100%</div>
+            <div class="card-title">Kepatuhan Cut-Off</div>
+            <div class="card-desc">Penerapan batas waktu Jumat pk 10:00 meniadakan pembelian sporadis yang merugikan arus kas.</div>
+          </div>
+          <div class="card" style="text-align: center;">
+            <div class="metric-big" style="color: var(--primary-light);">8</div>
+            <div class="card-title">Entitas Terpadu</div>
+            <div class="card-desc">CPL, PPI, HL, GAJ, MIL, SP, SSK, dan MO terkelola dalam satu platform komando terpadu.</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Metrik Evaluasi Sistem • Dampak Bisnis Nyata</span>
+        <span>Slide 12 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 -->
+    <div class="slide" id="slide-13">
+      <div class="slide-header">
+        <div class="slide-category">Roadmap Pengembangan</div>
+        <div class="slide-title">Rencana Pengembangan Tahap Lanjutan</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card">
+            <span class="badge badge-primary">TAHAP 2</span>
+            <div class="card-title">Integrasi WhatsApp Gateway Otomatis</div>
+            <div class="card-desc">
+              Notifikasi status pesanan dikirim otomatis secara terjadwal ke nomor WhatsApp nahkoda/KKM saat PO terbit atau saat barang siap diantar ke kapal.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">TAHAP 3</span>
+            <div class="card-title">Predictive Maintenance Suku Cadang</div>
+            <div class="card-desc">
+              Sistem memprediksi kebutuhan pergantian suku cadang mesin kapal berdasarkan jam operasi kapal untuk mencegah kerusakan di tengah pelayaran.
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge badge-primary">TAHAP 4</span>
+            <div class="card-title">Automated Vendor Scoring</div>
+            <div class="card-desc">
+              Penilaian rekanan vendor secara objektif berbasis rekam jejak ketepatan waktu pengiriman, kesesuaian spesifikasi barang, dan kestabilan harga.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Roadmap Inovasi Berkelanjutan • Skalabilitas Sistem</span>
+        <span>Slide 13 / 14</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 -->
+    <div class="slide" id="slide-14">
+      <div class="slide-header">
+        <div class="slide-category">Penutup & Rekomendasi</div>
+        <div class="slide-title">Kesimpulan: Sinergi Menuju Keunggulan Operasional Armada CPG</div>
+      </div>
+      <div class="slide-body">
+        <div class="card" style="padding: 28px; gap: 16px;">
+          <div style="font-size: 16px; font-weight: 800; color: var(--primary-light);">3 Komitmen Utama Bersama Manajemen:</div>
+          <div>
+            <strong style="color: #fff; font-size: 14px;">1. Jaminan Kecepatan Dukungan Kebutuhan Armada</strong>
+            <p class="card-desc" style="font-size: 12px; margin-top: 3px;">
+              Penerapan disiplin SLA (P1: 1-2 hari, P2: 3-14 hari, P3: 14-30 hari) memberikan kepastian dukungan logistik bagi kapal berlayar sehingga meminimalisir risiko operasional.
+            </p>
+          </div>
+          <div>
+            <strong style="color: #fff; font-size: 14px;">2. Pengendalian Finansial & Penghematan Nyata</strong>
+            <p class="card-desc" style="font-size: 12px; margin-top: 3px;">
+              Pencegahan pembelian ganda dan pemanfaatan optimal stok Gudang Somber/Kariangau melindungi arus kas perusahaan dari pemborosan biaya belanja berulang.
+            </p>
+          </div>
+          <div>
+            <strong style="color: #fff; font-size: 14px;">3. Budaya Transparansi & Kesiapan Audit (Good Corporate Governance)</strong>
+            <p class="card-desc" style="font-size: 12px; margin-top: 3px;">
+              Seluruh rantai komando, dokumen 4-tier (FPB-PO-TTB-FSTB), dan rekam jejak keputusan tersimpan rapi secara digital, memastikan perusahaan selalu siap audit kapan pun.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <span>Terima Kasih • Sinergi Manajemen & Tim Pengadaan CPG</span>
+        <span>Slide 14 / 14</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
