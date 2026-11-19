@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/ensure-storage-symlink.mjs",
+    "prebuild": "node scripts/generate-build-info.mjs && node scripts/ensure-storage-symlink.mjs",
     "build": "next build",
+    "version:gen": "node scripts/generate-build-info.mjs",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview:cloudflare": "wrangler pages dev .open-next/assets",
     "start": "next start",

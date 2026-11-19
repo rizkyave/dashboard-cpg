@@ -35,6 +35,7 @@ import {
   FileStack,
   CalendarDays,
   BookOpen,
+  RefreshCw,
 } from 'lucide-react';
 
 import * as XLSX from 'xlsx';
@@ -44,6 +45,7 @@ import ThemeToggle from './ThemeToggle';
 import { UserProfileModal } from './UserProfileModal';
 import { useAuth } from '@/context/AuthContext';
 import { canAccessTab, getRoleDisplayName } from '@/types/auth';
+import { SYSTEM_CURRENT_VERSION } from '@/data/system-changelog';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -722,8 +724,27 @@ export default function Sidebar({
       </div>
 
 
+      {/* App Version & Live Update Indicator */}
+      {!isCollapsed && (
+        <div className="px-2 py-1.5 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground shrink-0">
+          <div className="flex items-center gap-1.5 font-mono">
+            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" title="Sistem Aktif" />
+            <span className="font-semibold text-foreground/80">{SYSTEM_CURRENT_VERSION}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('cpg:check-update'))}
+            className="hover:text-sky-400 transition flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded hover:bg-muted text-muted-foreground cursor-pointer"
+            title="Periksa pembaruan versi sistem"
+          >
+            <RefreshCw className="size-2.5" />
+            <span>Cek Update</span>
+          </button>
+        </div>
+      )}
+
       {/* Footer User Info, Logout & Theme Toggle */}
-      <div className="pt-3 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5 shrink-0 mt-4">
+      <div className="pt-2.5 border-t border-border flex items-center justify-between text-xs pb-safe gap-1.5 shrink-0 mt-2">
         <div
           onClick={() => setIsProfileModalOpen(true)}
           className="flex items-center gap-2 min-w-0 flex-1 p-1 rounded-lg hover:bg-muted/60 transition cursor-pointer group"

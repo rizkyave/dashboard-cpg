@@ -1,0 +1,9 @@
+{
+  "version": "v2.6.0",
+  "gitCommit": "b0a197c",
+  "gitDate": "2026-11-19 10:38:48 +0800",
+  "gitMessage": "fix(rbac): pulihkan matriks hak akses seluruh role, tambah guardrail anomali, dan dialog proteksi set-dilarang",
+  "buildTime": "2026-11-19T02:45:34.548Z",
+  "buildId": "CPG-b0a197c-1795056334548",
+  "environment": "production"
+}
