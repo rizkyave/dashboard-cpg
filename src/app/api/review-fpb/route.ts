@@ -700,6 +700,7 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
   let fulfillStock = 0;
   let needClarification = 0;
   let rejected = 0;
+  let cancelled = 0;
   let urgent = 0;
   let emergency = 0;
   let p1Count = 0;
@@ -708,6 +709,11 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
   let overdueCount = 0;
 
   for (const r of records) {
+    if (r.reviewStatus === 'CANCELLED' || r.isCancelled) {
+      cancelled++;
+      continue;
+    }
+
     switch (r.reviewStatus) {
       case 'PENDING_REVIEW':
         pending++;
@@ -746,6 +752,7 @@ function calculateMetrics(records: FpbReviewRecord[]): FpbReviewSummaryMetrics {
     fulfillStock,
     needClarification,
     rejected,
+    cancelled,
     urgent,
     emergency,
     p1Count,
@@ -1529,6 +1536,172 @@ export async function POST(req: NextRequest) {
         message: `Berhasil mengalihkan ${count} berkas backlog ke Siklus Aktif (${targetBatchNo || 'Batch III'}) sebagai dokumen Carry-Over.`,
         carriedCount: count,
         total: records.length,
+      });
+    }
+
+    // ----------------------------------------------------
+    // Action 10: Delete / Void FPB (Admin Only)
+    // ----------------------------------------------------
+    if (action === 'delete_fpb') {
+      const { fpbNo, permanent, reason, deletedBy, force } = body;
+      if (!fpbNo) {
+        return NextResponse.json({ success: false, message: 'Nomor FPB wajib diisi.' }, { status: 400 });
+      }
+
+      const cleanFpb = String(fpbNo).trim().toUpperCase();
+      const targetIndex = records.findIndex((r) => r.fpbNo.toUpperCase() === cleanFpb);
+
+      if (targetIndex === -1) {
+        return NextResponse.json(
+          { success: false, message: `FPB dengan nomor ${cleanFpb} tidak ditemukan.` },
+          { status: 404 }
+        );
+      }
+
+      const targetRec = records[targetIndex];
+
+      // Pengecekan relasi dokumen aktif (PO, FSTB, TTB)
+      const docRel = findDocumentsByFpb(cleanFpb);
+      const activePos = Array.from(
+        new Set([...(targetRec.relatedDocs?.poNos || []), ...(docRel?.pos || [])])
+      ).filter(Boolean);
+      const activeTtbs = Array.from(
+        new Set([...(targetRec.relatedDocs?.ttbNos || []), ...(docRel?.ttbs || [])])
+      ).filter(Boolean);
+      const activeFstbs = Array.from(
+        new Set([...(targetRec.relatedDocs?.fstbNos || []), ...(docRel?.fstbs || [])])
+      ).filter(Boolean);
+
+      const hasRelations = activePos.length > 0 || activeTtbs.length > 0;
+      if (hasRelations && !force) {
+        return NextResponse.json(
+          {
+            success: false,
+            hasActiveRelations: true,
+            relations: {
+              pos: activePos,
+              ttbs: activeTtbs,
+              fstbs: activeFstbs,
+            },
+            message: `FPB ${cleanFpb} terhubung dengan transaksi pengadaan aktif (${
+              activePos.length > 0 ? `PO: ${activePos.join(', ')}` : ''
+            }${activeTtbs.length > 0 ? ` | TTB: ${activeTtbs.join(', ')}` : ''}). Harap batalkan dokumen terkait terlebih dahulu atau gunakan opsi Force Delete.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const nowIso = new Date().toISOString();
+      const actor = deletedBy || 'Administrator';
+      const cleanReason = (reason || '').trim() || 'Salah administrasi / Dihapus oleh Admin';
+
+      // Pencatatan audit log penghapusan
+      try {
+        const auditDir = path.join(getPersistentStorageDir(), 'fpb-metadata');
+        const auditLogPath = path.join(auditDir, 'deletion-logs.json');
+        if (!fs.existsSync(auditDir)) {
+          fs.mkdirSync(auditDir, { recursive: true });
+        }
+        let deletionLogs: any[] = [];
+        if (fs.existsSync(auditLogPath)) {
+          try {
+            const rawLogs = fs.readFileSync(auditLogPath, 'utf-8');
+            deletionLogs = JSON.parse(rawLogs);
+          } catch {
+            deletionLogs = [];
+          }
+        }
+        deletionLogs.unshift({
+          id: `del-${Date.now()}`,
+          fpbNo: targetRec.fpbNo,
+          entity: targetRec.entity,
+          armada: targetRec.armada,
+          date: targetRec.date,
+          purpose: targetRec.purpose,
+          itemCount: targetRec.items?.length || 0,
+          permanent: !!permanent,
+          reason: cleanReason,
+          deletedBy: actor,
+          deletedAt: nowIso,
+          relationsSnapshot: { pos: activePos, ttbs: activeTtbs, fstbs: activeFstbs },
+        });
+        fs.writeFileSync(auditLogPath, JSON.stringify(deletionLogs.slice(0, 500), null, 2), 'utf-8');
+      } catch (logErr) {
+        console.warn('[delete_fpb] Gagal mencatat audit log:', logErr);
+      }
+
+      if (permanent) {
+        // Hapus permanen dari database
+        DUMMY_FPB_BLACKLIST.add(cleanFpb);
+        records.splice(targetIndex, 1);
+        await saveReviews(records);
+
+        return NextResponse.json({
+          success: true,
+          action: 'permanent_deleted',
+          message: `FPB ${cleanFpb} berhasil dihapus permanen dari seluruh database & Cloud Storage.`,
+          remainingCount: records.length,
+        });
+      } else {
+        // Soft delete / Void (Status = CANCELLED)
+        records[targetIndex] = {
+          ...targetRec,
+          reviewStatus: 'CANCELLED',
+          isCancelled: true,
+          cancellationReason: cleanReason,
+          cancelledAt: nowIso,
+          cancelledBy: actor,
+          updatedAt: nowIso,
+          reviewNotes: (targetRec.reviewNotes ? targetRec.reviewNotes + ' | ' : '') + `[Dibatalkan Admin: ${cleanReason} oleh ${actor} pd ${formatDateDdMmYy(nowIso)}]`,
+        };
+        await saveReviews(records);
+
+        return NextResponse.json({
+          success: true,
+          action: 'voided',
+          message: `FPB ${cleanFpb} berhasil dibatalkan (Status: Salah Administrasi / Dibatalkan). Riwayat tetap tersimpan untuk audit trail.`,
+          record: records[targetIndex],
+        });
+      }
+    }
+
+    // ----------------------------------------------------
+    // Action 11: Restore Voided / Cancelled FPB
+    // ----------------------------------------------------
+    if (action === 'restore_fpb') {
+      const { fpbNo, restoredBy } = body;
+      if (!fpbNo) {
+        return NextResponse.json({ success: false, message: 'Nomor FPB wajib diisi.' }, { status: 400 });
+      }
+
+      const cleanFpb = String(fpbNo).trim().toUpperCase();
+      const targetIndex = records.findIndex((r) => r.fpbNo.toUpperCase() === cleanFpb);
+
+      if (targetIndex === -1) {
+        return NextResponse.json(
+          { success: false, message: `FPB dengan nomor ${cleanFpb} tidak ditemukan.` },
+          { status: 404 }
+        );
+      }
+
+      const nowIso = new Date().toISOString();
+      const actor = restoredBy || 'Administrator';
+      const targetRec = records[targetIndex];
+
+      records[targetIndex] = {
+        ...targetRec,
+        reviewStatus: 'PENDING_REVIEW',
+        isCancelled: false,
+        updatedAt: nowIso,
+        reviewNotes: (targetRec.reviewNotes ? targetRec.reviewNotes + ' | ' : '') + `[Dipulihkan dari status Batal oleh ${actor} pd ${formatDateDdMmYy(nowIso)}]`,
+      };
+
+      await saveReviews(records);
+
+      return NextResponse.json({
+        success: true,
+        message: `FPB ${cleanFpb} berhasil dipulihkan kembali ke status Menunggu Analisa.`,
+        record: records[targetIndex],
       });
     }
 

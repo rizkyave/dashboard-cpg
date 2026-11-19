@@ -59,6 +59,7 @@ import {
   RotateCcw,
   BarChart3,
   ArrowUpRight,
+  Ban,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { downloadPurchasePlanningBatchExcel } from '@/utils/batchExcelGenerator';
@@ -82,6 +83,7 @@ import { MASTER_ARMADA_LIST } from '@/utils/fstbDetector';
 import { findCrewOrArmadaContact, syncCrewContact } from '@/utils/crewKapalStorage';
 import LogisticsApprovalCell from './LogisticsApprovalCell';
 import LogisticsApprovalConfirmModal from './LogisticsApprovalConfirmModal';
+import { formatDateDdMmYy } from '@/utils/formatDate';
 import { checkFpbCycleAlignment } from '@/utils/fpbCycleHelper';
 
 // Helper formatting WhatsApp URL
@@ -131,6 +133,9 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
     user.role === 'supervisor' ||
     user.role === 'staf_fpb' ||
     user.role === 'staf_purchasing';
+
+  // Strict Admin (khusus penghapusan & pembatalan berkas salah administrasi)
+  const isStrictAdmin = authIsAdmin || user?.role === 'admin';
 
   // Data states
   const [reviews, setReviews] = useState<FpbReviewRecord[]>([]);
@@ -208,6 +213,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
   const [isFetchingRequester, setIsFetchingRequester] = useState<boolean>(false);
   const [isEditingPhone, setIsEditingPhone] = useState<boolean>(false);
   const [tempPhoneInput, setTempPhoneInput] = useState<string>('');
+
+  // Admin Deletion & Voiding (Salah Administrasi) States
+  const [deleteConfirmRecord, setDeleteConfirmRecord] = useState<FpbReviewRecord | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'void' | 'permanent'>('void');
+  const [deleteReason, setDeleteReason] = useState<string>('');
+  const [deleteForce, setDeleteForce] = useState<boolean>(false);
+  const [isDeletingFpb, setIsDeletingFpb] = useState<boolean>(false);
 
   // Verifikasi Pengesahan Dokumen di Real Server e-FPB
   const handleVerifyEfpb = async (rec: FpbReviewRecord) => {
@@ -671,6 +683,88 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
       }
     } catch (err: any) {
       showToast?.('Error saat carry-over backlog: ' + err.message, 'error');
+    }
+  };
+
+  // -----------------------------------------------------------------
+  // Hapus / Batalkan FPB (Khusus Admin - Penanganan Salah Administrasi)
+  // -----------------------------------------------------------------
+  const handleDeleteFpb = async () => {
+    if (!deleteConfirmRecord) return;
+    if (!deleteReason.trim()) {
+      showToast?.('Alasan pembatalan / penghapusan wajib diisi untuk catatan audit trail.', 'warning');
+      return;
+    }
+
+    setIsDeletingFpb(true);
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_fpb',
+          fpbNo: deleteConfirmRecord.fpbNo,
+          permanent: deleteMode === 'permanent',
+          reason: deleteReason,
+          deletedBy: user?.name || user?.username || 'Administrator',
+          force: deleteForce,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(
+          json.message ||
+            (deleteMode === 'permanent'
+              ? `FPB ${deleteConfirmRecord.fpbNo} berhasil dihapus permanen.`
+              : `FPB ${deleteConfirmRecord.fpbNo} berhasil dibatalkan (Salah Administrasi).`),
+          deleteMode === 'permanent' ? 'success' : 'info'
+        );
+        const deletedFpbNo = deleteConfirmRecord.fpbNo;
+        setDeleteConfirmRecord(null);
+        setDeleteReason('');
+        setDeleteForce(false);
+        if (selectedRecord?.fpbNo === deletedFpbNo) {
+          setSelectedRecord(null);
+        }
+        await fetchReviews();
+      } else if (json.hasActiveRelations) {
+        showToast?.(json.message, 'warning');
+      } else {
+        showToast?.(json.message || 'Gagal memproses penghapusan FPB', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Error saat memproses penghapusan FPB: ' + err.message, 'error');
+    } finally {
+      setIsDeletingFpb(false);
+    }
+  };
+
+  // Pulihkan FPB yang Dibatalkan / Void
+  const handleRestoreFpb = async (rec: FpbReviewRecord) => {
+    if (!confirm(`Pulihkan FPB ${rec.fpbNo} kembali ke antrean Menunggu Analisa?`)) return;
+    try {
+      const res = await fetch('/api/review-fpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'restore_fpb',
+          fpbNo: rec.fpbNo,
+          restoredBy: user?.name || user?.username || 'Administrator',
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast?.(json.message || `FPB ${rec.fpbNo} berhasil dipulihkan!`, 'success');
+        if (selectedRecord?.fpbNo === rec.fpbNo) {
+          setSelectedRecord(json.record || { ...rec, reviewStatus: 'PENDING_REVIEW', isCancelled: false });
+        }
+        await fetchReviews();
+      } else {
+        showToast?.(json.message || 'Gagal memulihkan FPB', 'error');
+      }
+    } catch (err: any) {
+      showToast?.('Error saat memulihkan FPB: ' + err.message, 'error');
     }
   };
 
@@ -1935,6 +2029,13 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
             Ditolak
           </span>
         );
+      case 'CANCELLED':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+            <Ban className="size-3.5" />
+            Dibatalkan (Salah Administrasi)
+          </span>
+        );
       case 'PENDING_REVIEW':
       default:
         return (
@@ -2871,6 +2972,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 <option value="FULFILL_STOCK">Dipenuhi dari Stok</option>
                 <option value="NEED_CLARIFICATION">Perlu Klarifikasi</option>
                 <option value="REJECTED">Ditolak</option>
+                <option value="CANCELLED">Dibatalkan (Salah Administrasi)</option>
               </select>
             </div>
 
@@ -3028,6 +3130,7 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   <th className="py-3 px-3 whitespace-nowrap min-w-[90px] w-24" title="Tingkat kegentingan operasional armada (Normal / Urgent / Emergency). Pengajuan Urgent otomatis diprioritaskan P1 (SLA 1-2 hari)">Urgensi</th>
                   <th className="py-3 px-3 text-center whitespace-nowrap min-w-[90px] w-24" title="Nomor urutan registrasi antrean masuk Purchase Planning mingguan">Ref. Planning</th>
                   <th className="py-3 px-3 whitespace-nowrap min-w-[110px] w-28" title="Status alokasi barang (Dalam analisa tim sebelum disetujui, Perlu PO / Stok gudang setelah disetujui)">Item & Stok</th>
+                  <th className="py-3 px-3 text-center whitespace-nowrap min-w-[70px]">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -3242,6 +3345,55 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                           </span>
                         )}
                       </td>
+
+                      {/* Aksi (Khusus Admin / Quick Action) */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1">
+                          {isStrictAdmin ? (
+                            rec.reviewStatus === 'CANCELLED' || rec.isCancelled ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestoreFpb(rec)}
+                                  className="p-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition cursor-pointer"
+                                  title="Pulihkan FPB ini kembali ke antrean aktif"
+                                >
+                                  <RotateCcw className="size-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteConfirmRecord(rec);
+                                    setDeleteMode('permanent');
+                                    setDeleteReason('');
+                                    setDeleteForce(false);
+                                  }}
+                                  className="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                                  title="Hapus permanen dari database"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteConfirmRecord(rec);
+                                  setDeleteMode('void');
+                                  setDeleteReason('');
+                                  setDeleteForce(false);
+                                }}
+                                className="p-1.5 rounded-lg border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                                title="Hapus / Batalkan FPB (Salah Administrasi)"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )
+                          ) : (
+                            <span className="text-muted-foreground/30">-</span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -3356,8 +3508,24 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 </div>
               </div>
 
-              {/* Close Button */}
+              {/* Actions & Close Button */}
               <div className="flex items-center gap-2">
+                {isStrictAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirmRecord(selectedRecord);
+                      setDeleteMode(selectedRecord.reviewStatus === 'CANCELLED' || selectedRecord.isCancelled ? 'permanent' : 'void');
+                      setDeleteReason('');
+                      setDeleteForce(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold transition cursor-pointer"
+                    title="Hapus / Batalkan FPB ini (Khusus Admin - Salah Administrasi)"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Hapus FPB</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -3368,6 +3536,34 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                 </button>
               </div>
             </div>
+
+            {/* Banner Dokumen Dibatalkan (Salah Administrasi) */}
+            {(selectedRecord.reviewStatus === 'CANCELLED' || selectedRecord.isCancelled) && (
+              <div className="p-3.5 mx-5 mt-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-3 text-xs text-rose-800 dark:text-rose-200">
+                <div className="flex items-center gap-2.5">
+                  <Ban className="size-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                  <div>
+                    <span className="font-bold">Dokumen FPB Dibatalkan (Salah Administrasi):</span>{' '}
+                    <span>{selectedRecord.cancellationReason || 'Dibatalkan oleh Admin'}</span>
+                    {selectedRecord.cancelledBy && (
+                      <span className="text-muted-foreground ml-1">
+                        (Oleh {selectedRecord.cancelledBy}{selectedRecord.cancelledAt ? `, ${formatDateDdMmYy(selectedRecord.cancelledAt)}` : ''})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {isStrictAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreFpb(selectedRecord)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition cursor-pointer text-xs shadow-xs"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    <span>Pulihkan FPB</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Duplicate Detection Alert Banner */}
             {selectedRecord.duplicateAlerts && selectedRecord.duplicateAlerts.length > 0 && (
@@ -4033,7 +4229,8 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                     <option value="APPROVED_PO">✅ Disetujui Masuk Purchase Planning</option>
                     <option value="FULFILL_STOCK">📦 Dipenuhi dari Stok Gudang (Logistik)</option>
                     <option value="NEED_CLARIFICATION">❓ Perlu Klarifikasi ke Armada</option>
-                    <option value="REJECTED">❌ Ditolak / Dibatalkan</option>
+                    <option value="REJECTED">❌ Ditolak</option>
+                    <option value="CANCELLED">🚫 Dibatalkan (Salah Administrasi / Void)</option>
                   </select>
                 </div>
 
@@ -4339,6 +4536,23 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                         </span>
                       </button>
 
+                      {isStrictAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteConfirmRecord(selectedRecord);
+                            setDeleteMode(selectedRecord.reviewStatus === 'CANCELLED' || selectedRecord.isCancelled ? 'permanent' : 'void');
+                            setDeleteReason('');
+                            setDeleteForce(false);
+                          }}
+                          className="mr-auto inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 transition cursor-pointer"
+                          title="Hapus / Batalkan FPB ini (Salah Administrasi)"
+                        >
+                          <Trash2 className="size-3.5" />
+                          <span>Hapus / Batalkan FPB</span>
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={handleCloseModal}
@@ -4360,6 +4574,219 @@ export default function ReviewFpbTab({ showToast, initialSearch }: ReviewFpbTabP
                   </div>
                 );
               })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* Modal Konfirmasi Hapus / Batalkan FPB (Khusus Admin)     */}
+      {/* ======================================================== */}
+      {deleteConfirmRecord && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in-50">
+          <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border bg-rose-500/10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400">
+                  <Trash2 className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Hapus / Batalkan Berkas FPB
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Penanganan salah administrasi & pembersihan dokumen FPB
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmRecord(null)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+              {/* Info Dokumen FPB */}
+              <div className="p-3.5 rounded-xl border border-border bg-muted/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-sm font-bold text-foreground">
+                    {deleteConfirmRecord.fpbNo}
+                  </span>
+                  {getEntityBadge(deleteConfirmRecord.entity)}
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-muted-foreground pt-1 border-t border-border/60">
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-muted-foreground/80 block">Armada:</span>
+                    <span className="font-medium text-foreground">{deleteConfirmRecord.armada}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-muted-foreground/80 block">Tanggal:</span>
+                    <span className="font-medium text-foreground">{deleteConfirmRecord.date}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[10px] uppercase font-semibold text-muted-foreground/80 block">Keperluan:</span>
+                    <span className="font-medium text-foreground line-clamp-2">{deleteConfirmRecord.purpose || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-muted-foreground/80 block">Jumlah Item:</span>
+                    <span className="font-medium text-foreground">{deleteConfirmRecord.items?.length || 0} barang</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-muted-foreground/80 block">Status Saat Ini:</span>
+                    <span className="font-medium text-foreground">{deleteConfirmRecord.reviewStatus || 'PENDING_REVIEW'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning Relasi Dokumen Transaksi */}
+              {(() => {
+                const pos = deleteConfirmRecord.relatedDocs?.poNos || [];
+                const ttbs = deleteConfirmRecord.relatedDocs?.ttbNos || [];
+                if (pos.length === 0 && ttbs.length === 0) return null;
+
+                return (
+                  <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 space-y-2">
+                    <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
+                      <AlertTriangle className="size-4 shrink-0" />
+                      <span>Perhatian: Dokumen Memiliki Relasi Transaksi Aktif</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                      FPB ini telah memiliki relasi dengan dokumen transaksi hilir:
+                      {pos.length > 0 && <span className="font-semibold"> PO: {pos.join(', ')}</span>}
+                      {ttbs.length > 0 && <span className="font-semibold"> | TTB: {ttbs.join(', ')}</span>}
+                      . Menghapus data ini dapat menyebabkan ketidaksinkronan data pengadaan.
+                    </p>
+                    <label className="flex items-center gap-2 pt-1 font-semibold text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={deleteForce}
+                        onChange={(e) => setDeleteForce(e.target.checked)}
+                        className="rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span>Saya memahami risikonya dan ingin memaksa hapus (Force Override)</span>
+                    </label>
+                  </div>
+                );
+              })()}
+
+              {/* Pilihan Metode Penghapusan */}
+              <div className="space-y-2">
+                <label className="block font-bold text-foreground">
+                  Pilih Tindakan Penghapusan:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div
+                    onClick={() => setDeleteMode('void')}
+                    className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                      deleteMode === 'void'
+                        ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20'
+                        : 'border-border bg-background hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Ban className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span className="font-bold text-foreground">Batalkan (Void)</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      Status diubah menjadi Dibatalkan. Nomor tetap tersimpan untuk riwayat audit trail.
+                    </span>
+                    <span className="mt-2 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded self-start">
+                      Direkomendasikan
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => setDeleteMode('permanent')}
+                    className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                      deleteMode === 'permanent'
+                        ? 'border-rose-500 bg-rose-500/10 ring-2 ring-rose-500/20'
+                        : 'border-border bg-background hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Trash2 className="size-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                      <span className="font-bold text-foreground">Hapus Permanen</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      Dihapus seutuhnya dari disk, Hostinger & Cloudflare R2. Untuk data dummy/salah input fatal.
+                    </span>
+                    <span className="mt-2 text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-500/20 px-2 py-0.5 rounded self-start">
+                      Permanen
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Alasan Penghapusan */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-foreground">
+                  Alasan Penghapusan / Pembatalan: <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Tuliskan alasan spesifik (misal: Kru kapal salah input nomor FPB, dokumen testing, atau dibatalkan operasional)..."
+                  className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20 text-xs placeholder:text-muted-foreground"
+                />
+
+                {/* Quick Chips Alasan */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-muted-foreground">Pilihan cepat:</span>
+                  {[
+                    'Salah nomor FPB oleh kru kapal',
+                    'Input dobel / duplikasi sistem',
+                    'Dokumen testing / uji coba',
+                    'Dibatalkan oleh pihak kapal/armada',
+                    'Revisi nomor e-FPB baru',
+                  ].map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setDeleteReason(chip)}
+                      className="px-2 py-0.5 rounded-md text-[10px] font-medium border border-border bg-muted/50 hover:bg-muted text-foreground transition cursor-pointer"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmRecord(null)}
+                disabled={isDeletingFpb}
+                className="px-4 py-2 text-xs font-semibold rounded-lg border border-border bg-background hover:bg-muted text-foreground transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteFpb}
+                disabled={isDeletingFpb}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg text-white transition shadow-sm cursor-pointer disabled:opacity-50 ${
+                  deleteMode === 'permanent'
+                    ? 'bg-rose-600 hover:bg-rose-700'
+                    : 'bg-amber-600 hover:bg-amber-700'
+                }`}
+              >
+                <Trash2 className={`size-3.5 ${isDeletingFpb ? 'animate-spin' : ''}`} />
+                <span>
+                  {isDeletingFpb
+                    ? 'Memproses...'
+                    : deleteMode === 'permanent'
+                    ? 'Konfirmasi Hapus Permanen'
+                    : 'Konfirmasi Batalkan FPB'}
+                </span>
+              </button>
             </div>
           </div>
         </div>

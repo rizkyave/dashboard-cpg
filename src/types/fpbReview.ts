@@ -3,7 +3,8 @@ export type FpbReviewStatus =
   | 'APPROVED_PO'
   | 'FULFILL_STOCK'
   | 'NEED_CLARIFICATION'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'CANCELLED';
 
 export type FpbUrgency = 'NORMAL' | 'URGENT' | 'EMERGENCY';
 
@@ -156,6 +157,12 @@ export interface FpbReviewRecord {
   carryOverAt?: string;
   carryOverBy?: string;
   cycleDisposition?: 'REGULAR' | 'LATE_ENTRY' | 'HISTORICAL_ARCHIVE';
+  isCancelled?: boolean;
+  cancelledAt?: string;
+  cancelledBy?: string;
+  cancellationReason?: string;
+  deletedAt?: string;
+  deletedBy?: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -167,6 +174,7 @@ export interface FpbReviewSummaryMetrics {
   fulfillStock: number;
   needClarification: number;
   rejected: number;
+  cancelled?: number;
   urgent: number;
   emergency: number;
   p1Count: number;
