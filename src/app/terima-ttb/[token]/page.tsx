@@ -94,6 +94,11 @@ async function compressImage(file: File): Promise<File> {
   });
 }
 
+/**
+ * Batas maksimal foto fisik barang per serah terima TTB (bisa untuk multi-item barang)
+ */
+const MAX_PHOTOS = 10;
+
 export default function RemoteHandoverPage() {
   const params = useParams();
   const token = (params?.token as string) || '';
@@ -299,7 +304,7 @@ export default function RemoteHandoverPage() {
       const previewUrl = URL.createObjectURL(compressed);
 
       setUploadedPhotos((prev) => {
-        if (prev.length >= 2) return prev;
+        if (prev.length >= MAX_PHOTOS) return prev;
         return [...prev, { file: compressed, preview: previewUrl }];
       });
       showToast('Foto bukti ber-watermark berhasil ditambahkan!', 'success');
@@ -316,16 +321,25 @@ export default function RemoteHandoverPage() {
 
     setIsCompressing(true);
     try {
-      const remainingSlots = 2 - uploadedPhotos.length;
+      const remainingSlots = MAX_PHOTOS - uploadedPhotos.length;
+      if (remainingSlots <= 0) {
+        showToast(`Maksimal ${MAX_PHOTOS} foto telah tercapai.`, 'warning');
+        return;
+      }
       const targetFiles = Array.from(files).slice(0, remainingSlots);
 
       for (const file of targetFiles) {
         const compressed = await compressImage(file);
         const previewUrl = URL.createObjectURL(compressed);
-        setUploadedPhotos((prev) => [...prev, { file: compressed, preview: previewUrl }]);
+        setUploadedPhotos((prev) => {
+          if (prev.length >= MAX_PHOTOS) return prev;
+          return [...prev, { file: compressed, preview: previewUrl }];
+        });
       }
+      showToast(`${targetFiles.length} foto berhasil ditambahkan!`, 'success');
     } catch (err) {
       console.warn('Kompresi foto gagal:', err);
+      showToast('Gagal memproses foto yang dipilih.', 'error');
     } finally {
       setIsCompressing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -536,6 +550,43 @@ export default function RemoteHandoverPage() {
               </span>
             </div>
           </div>
+
+          {/* Dokumentasi Foto Fisik Terverifikasi */}
+          {data?.receiverPhotos && data.receiverPhotos.length > 0 && (
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/70 text-left space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Camera className="size-4 text-indigo-400" />
+                  <span>Foto Fisik Barang Terlampir</span>
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 font-semibold">
+                  {data.receiverPhotos.length} Foto
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                {data.receiverPhotos.map((url, idx) => (
+                  <a
+                    key={idx}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative aspect-4/3 rounded-lg overflow-hidden border border-slate-700 hover:border-indigo-400 transition group block"
+                    title={`Lihat Foto Bukti ${idx + 1}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={`Foto Fisik ${idx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                    <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/70 text-[9px] font-mono text-white">
+                      #{idx + 1}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Tombol Lihat & Unduh TTB Resmi Bertanda Tangan */}
           <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 text-left">
@@ -794,16 +845,16 @@ export default function RemoteHandoverPage() {
                 <span>Foto Bukti Fisik Barang <span className="text-rose-500">*</span></span>
               </h3>
               <span className="text-[11px] font-mono font-semibold text-slate-400">
-                {uploadedPhotos.length}/2 Foto
+                {uploadedPhotos.length}/{MAX_PHOTOS} Foto
               </span>
             </div>
 
             <p className="text-[11px] text-slate-400">
-              Ambil foto fisik barang atau kemasan paket yang telah diterima di atas kapal (maksimal 2 foto). Foto otomatis dikompresi hemat kuota internet.
+              Ambil foto fisik barang atau kemasan paket yang telah diterima di atas kapal (maksimal {MAX_PHOTOS} foto). Mendukung banyak foto untuk dokumentasi setiap item barang fisik. Foto otomatis dikompresi hemat kuota internet.
             </p>
 
             {/* Grid Preview Foto */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
               {uploadedPhotos.map((item, idx) => (
                 <div key={idx} className="relative aspect-4/3 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 group">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -823,7 +874,7 @@ export default function RemoteHandoverPage() {
               ))}
 
               {/* Tombol Ambil Foto dengan Kamera Watermark CPG (Timemark) */}
-              {uploadedPhotos.length < 2 && (
+              {uploadedPhotos.length < MAX_PHOTOS && (
                 <div className="aspect-4/3 rounded-xl border-2 border-dashed border-indigo-500/50 hover:border-indigo-400 bg-slate-950/60 hover:bg-indigo-500/5 flex flex-col items-center justify-center p-2.5 text-center transition group relative">
                   {isCompressing ? (
                     <div className="flex flex-col items-center justify-center">
@@ -866,12 +917,12 @@ export default function RemoteHandoverPage() {
               )}
             </div>
 
-            {/* Input Tersembunyi dengan dukungan Kamera Mobile Langsung */}
+            {/* Input Tersembunyi dengan dukungan Galeri & Kamera Mobile */}
             <input
               type="file"
               ref={fileInputRef}
               accept="image/*"
-              capture="environment"
+              multiple
               onChange={handlePhotoSelect}
               className="hidden"
             />

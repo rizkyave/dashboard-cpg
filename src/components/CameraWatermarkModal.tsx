@@ -124,6 +124,7 @@ export default function CameraWatermarkModal({
   // Start camera when modal opens; stop when it closes
   useEffect(() => {
     if (isOpen) {
+      setActiveTab('camera');
       startCamera();
       requestGeo();
     } else {
@@ -170,6 +171,15 @@ export default function CameraWatermarkModal({
     },
     [onPhotoCaptured, showToast, onClose]
   );
+
+  const handleUseAllInForm = useCallback(() => {
+    if (!onPhotoCaptured || capturedPhotos.length === 0) return;
+    capturedPhotos.forEach((p) => {
+      onPhotoCaptured(p.dataUrl, p.filename);
+    });
+    showToast?.(`${capturedPhotos.length} foto digunakan di formulir.`, 'success');
+    onClose();
+  }, [capturedPhotos, onPhotoCaptured, showToast, onClose]);
 
   const handleSaveSettings = useCallback(() => {
     saveSettingsToStorage();
@@ -549,17 +559,28 @@ export default function CameraWatermarkModal({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-xs font-semibold text-foreground">
                       {capturedPhotos.length} foto diambil
                     </span>
-                    <button
-                      type="button"
-                      onClick={clearPhotos}
-                      className="text-xs text-red-500 hover:text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Trash2 className="size-3" /> Hapus Semua
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {onPhotoCaptured && capturedPhotos.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={handleUseAllInForm}
+                          className="h-7 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer inline-flex items-center gap-1 shadow-xs"
+                        >
+                          <CheckCircle2 className="size-3" /> Gunakan Semua ({capturedPhotos.length})
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={clearPhotos}
+                        className="text-xs text-red-500 hover:text-red-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="size-3" /> Hapus Semua
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
